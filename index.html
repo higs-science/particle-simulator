@@ -1,14 +1,19 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Basic Particle Sim</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
-    <style>
-      body { margin: 0; overflow: hidden; background: #0b0b0b; color: white; }
-      canvas { display: block; }
-    </style>
-  </head>
-  <body>
-    <script src="sketch.js"></script>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Basic 3D Particle Simulator</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #0b0b0b; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <!-- Three.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.154.0/examples/js/controls/OrbitControls.min.js"></script>
+
+  <!-- Your script -->
+  <script src="script.js"></script>
+</body>
 </html>
