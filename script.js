@@ -1,3 +1,5 @@
+console.log("✅ script.js loaded");
+
 let scene, camera, renderer, controls;
 let particle;
 
