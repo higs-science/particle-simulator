@@ -7,10 +7,8 @@ animate();
 
 function init() {
   console.log("Initializing scene...");
-  // Scene
   scene = new THREE.Scene();
 
-  // Camera
   camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -20,16 +18,13 @@ function init() {
   camera.position.set(0, 7, 15);
   camera.lookAt(0, 0, 0);
 
-  // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setClearColor(0x0b0b0b); // dark background
   renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+  document.body.appendChild(renderer.domElement);  // Append ONCE here
 
-  // Controls (mouse orbit)
   controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-  // Lighting
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
@@ -37,28 +32,26 @@ function init() {
   pointLight.position.set(10, 10, 10);
   scene.add(pointLight);
 
-  // Particle (sphere)
   const geometry = new THREE.SphereGeometry(0.5, 32, 32);
   const material = new THREE.MeshStandardMaterial({ color: 0xff3399, emissive: 0x880022, emissiveIntensity: 0.6 });
   particle = new THREE.Mesh(geometry, material);
   scene.add(particle);
 
-  // Particle velocity
   particle.userData = { velocity: new THREE.Vector3(0.07, 0.05, 0.04) };
 
-  // Add wireframe cube boundary (size 10)
   const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
   const edges = new THREE.EdgesGeometry(boxGeometry);
   const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true });
   const boxWireframe = new THREE.LineSegments(edges, lineMaterial);
   scene.add(boxWireframe);
 
-  // Add grid helper on ground plane
   const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
   scene.add(gridHelper);
 
-  // Resize handler
   window.addEventListener('resize', onWindowResize);
+
+  // Force initial resize adjustment
+  onWindowResize();
 }
 
 function onWindowResize() {
@@ -66,13 +59,10 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
-  console.log("Renderer DOM element added:", renderer.domElement);
-
+  // Don't append renderer.domElement here again!
 }
 
 function animate() {
-  console.log("Animating frame...");
   requestAnimationFrame(animate);
 
   particle.position.addScaledVector(particle.userData.velocity, timeScale);
@@ -90,11 +80,7 @@ function animate() {
 
   controls.update();
 
-  renderer.clear();              // Clear before render
-  renderer.render(scene, camera);
-}
-
-  controls.update();
+  renderer.clear();
   renderer.render(scene, camera);
 }
 
