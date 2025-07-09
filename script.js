@@ -1,5 +1,3 @@
-// Basic 3D Particle Simulator with Three.js
-
 let scene, camera, renderer, controls;
 let particle;
 let timeScale = 1;
@@ -18,10 +16,12 @@ function init() {
     0.1,
     1000
   );
-  camera.position.set(0, 5, 10);
+  camera.position.set(0, 7, 15);
+  camera.lookAt(0, 0, 0);
 
   // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setClearColor(0x0b0b0b); // dark background
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
@@ -37,13 +37,24 @@ function init() {
   scene.add(pointLight);
 
   // Particle (sphere)
-  const geometry = new THREE.SphereGeometry(0.3, 32, 32);
-  const material = new THREE.MeshStandardMaterial({ color: 0xff6699 });
+  const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+  const material = new THREE.MeshStandardMaterial({ color: 0xff3399, emissive: 0x880022, emissiveIntensity: 0.6 });
   particle = new THREE.Mesh(geometry, material);
   scene.add(particle);
 
   // Particle velocity
-  particle.userData = { velocity: new THREE.Vector3(0.05, 0.03, 0.04) };
+  particle.userData = { velocity: new THREE.Vector3(0.07, 0.05, 0.04) };
+
+  // Add wireframe cube boundary (size 10)
+  const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
+  const edges = new THREE.EdgesGeometry(boxGeometry);
+  const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true });
+  const boxWireframe = new THREE.LineSegments(edges, lineMaterial);
+  scene.add(boxWireframe);
+
+  // Add grid helper on ground plane
+  const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+  scene.add(gridHelper);
 
   // Resize handler
   window.addEventListener('resize', onWindowResize);
@@ -62,9 +73,14 @@ function animate() {
   // Move particle based on velocity and timeScale
   particle.position.addScaledVector(particle.userData.velocity, timeScale);
 
-  // Bounce particle inside a cube of size 10
+  // Bounce particle inside cube bounds (-5 to 5)
   ['x', 'y', 'z'].forEach(axis => {
-    if (particle.position[axis] > 5 || particle.position[axis] < -5) {
+    if (particle.position[axis] > 5) {
+      particle.position[axis] = 5;
+      particle.userData.velocity[axis] *= -1;
+    }
+    if (particle.position[axis] < -5) {
+      particle.position[axis] = -5;
       particle.userData.velocity[axis] *= -1;
     }
   });
