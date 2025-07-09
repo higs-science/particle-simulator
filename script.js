@@ -23,8 +23,8 @@ function init() {
   renderer.setClearColor(0x111111);
   document.body.appendChild(renderer.domElement);
 
-  // ✅ Fix is right here:
-  controls = new OrbitControls(camera, renderer.domElement);
+  // ✅ Now it works again
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
 
   const geometry = new THREE.SphereGeometry(0.5, 32, 32);
   const material = new THREE.MeshBasicMaterial({ color: 0xff0044 });
@@ -44,7 +44,6 @@ function onWindowResize() {
 function animate() {
   requestAnimationFrame(animate);
 
-  // Make the particle orbit
   const time = Date.now() * 0.001;
   particle.position.x = Math.cos(time) * 3;
   particle.position.y = Math.sin(time) * 3;
