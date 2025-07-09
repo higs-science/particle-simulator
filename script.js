@@ -66,6 +66,9 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+  console.log("Renderer DOM element added:", renderer.domElement);
+
 }
 
 function animate() {
