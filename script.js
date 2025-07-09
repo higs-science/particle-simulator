@@ -6,6 +6,7 @@ init();
 animate();
 
 function init() {
+  console.log("Initializing scene...");
   // Scene
   scene = new THREE.Scene();
 
@@ -68,6 +69,7 @@ function onWindowResize() {
 }
 
 function animate() {
+  console.log("Animating frame...");
   requestAnimationFrame(animate);
 
   particle.position.addScaledVector(particle.userData.velocity, timeScale);
