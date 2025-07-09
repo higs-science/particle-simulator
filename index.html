@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Step 1: Test Three.js import</title>
+  <title>Step 2: Test OrbitControls import</title>
 </head>
 <body>
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js';
 
-    console.log('Three.js loaded:', THREE.REVISION);
+    console.log('OrbitControls loaded:', OrbitControls !== undefined);
   </script>
 </body>
 </html>
