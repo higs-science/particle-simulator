@@ -24,7 +24,7 @@ function init() {
   document.body.appendChild(renderer.domElement);
 
   // ✅ Fix is right here:
-  controls = new OrbitControls(camera, renderer.domElement);
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
 
   const geometry = new THREE.SphereGeometry(0.5, 32, 32);
   const material = new THREE.MeshBasicMaterial({ color: 0xff0044 });
