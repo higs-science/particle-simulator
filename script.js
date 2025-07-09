@@ -7,8 +7,7 @@ init();
 animate();
 
 function init() {
-  console.log("✅ Scene initializing...");
-
+  console.log("🔧 Initializing scene...");
   scene = new THREE.Scene();
 
   camera = new THREE.PerspectiveCamera(
@@ -24,9 +23,9 @@ function init() {
   renderer.setClearColor(0x111111);
   document.body.appendChild(renderer.domElement);
 
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  // ✅ Fix is right here:
+  controls = new OrbitControls(camera, renderer.domElement);
 
-  // Create red particle
   const geometry = new THREE.SphereGeometry(0.5, 32, 32);
   const material = new THREE.MeshBasicMaterial({ color: 0xff0044 });
   particle = new THREE.Mesh(geometry, material);
