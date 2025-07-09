@@ -70,10 +70,8 @@ function onWindowResize() {
 function animate() {
   requestAnimationFrame(animate);
 
-  // Move particle based on velocity and timeScale
   particle.position.addScaledVector(particle.userData.velocity, timeScale);
 
-  // Bounce particle inside cube bounds (-5 to 5)
   ['x', 'y', 'z'].forEach(axis => {
     if (particle.position[axis] > 5) {
       particle.position[axis] = 5;
@@ -84,6 +82,12 @@ function animate() {
       particle.userData.velocity[axis] *= -1;
     }
   });
+
+  controls.update();
+
+  renderer.clear();              // Clear before render
+  renderer.render(scene, camera);
+}
 
   controls.update();
   renderer.render(scene, camera);
