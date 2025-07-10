@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>2D Particle Simulator - Motion</title>
+  <title>2D Particle Simulator - 100 Particles</title>
   <style>
     body { margin: 0; overflow: hidden; background: #111; }
     canvas { display: block; background: #111; }
@@ -16,21 +16,24 @@
     const ctx = canvas.getContext("2d");
     resizeCanvas();
 
-    // 🧱 Replace this with THREE.js scene + object updates when moving to 3D
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
     window.addEventListener("resize", resizeCanvas);
 
-    function loop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      updateParticles();   // <-- 🆕 position update based on velocity
-      drawParticles();
-      requestAnimationFrame(loop);
-    }
-
     const particles = [];
+
+    // 🎯 Generate 100 fast particles like in accelerators
+    for (let i = 0; i < 100; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: 3,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 8
+      });
+    }
 
     function drawParticles() {
       ctx.fillStyle = "red";
@@ -46,20 +49,18 @@
         p.x += p.vx;
         p.y += p.vy;
 
-        // Optional: Bounce off walls
+        // Bounce off walls
         if (p.x - p.r < 0 || p.x + p.r > canvas.width) p.vx *= -1;
         if (p.y - p.r < 0 || p.y + p.r > canvas.height) p.vy *= -1;
       }
     }
 
-    // 🎯 Particle with velocity
-    particles.push({
-      x: 200,
-      y: 200,
-      r: 10,
-      vx: 2, // 🧭 horizontal speed
-      vy: 1  // 🧭 vertical speed
-    });
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      updateParticles();
+      drawParticles();
+      requestAnimationFrame(loop);
+    }
 
     loop();
   </script>
