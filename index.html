@@ -32,31 +32,35 @@
     }
     window.addEventListener("resize", resizeCanvas);
 
-    const particles = [];
+    let particles = [];
     const bandTop = canvas.height * 0.25;
     const bandBottom = canvas.height * 0.75;
     const numParticles = 50; // per beam
 
-    // Right-moving beam (left to right)
-    for (let i = 0; i < numParticles; i++) {
-      particles.push({
-        x: Math.random() * 100,
-        y: bandTop + Math.random() * (bandBottom - bandTop),
-        r: 3,
-        vx: 5 + Math.random() * 2,
-        vy: (Math.random() - 0.5) * 0.5
-      });
-    }
+    function createParticles() {
+      particles = [];
 
-    // Left-moving beam (right to left)
-    for (let i = 0; i < numParticles; i++) {
-      particles.push({
-        x: canvas.width - Math.random() * 100,
-        y: bandTop + Math.random() * (bandBottom - bandTop),
-        r: 3,
-        vx: -5 - Math.random() * 2,
-        vy: (Math.random() - 0.5) * 0.5
-      });
+      // Right-moving beam
+      for (let i = 0; i < numParticles; i++) {
+        particles.push({
+          x: Math.random() * 100,
+          y: bandTop + Math.random() * (bandBottom - bandTop),
+          r: 3,
+          vx: 5 + Math.random() * 2,
+          vy: (Math.random() - 0.5) * 0.5
+        });
+      }
+
+      // Left-moving beam
+      for (let i = 0; i < numParticles; i++) {
+        particles.push({
+          x: canvas.width - Math.random() * 100,
+          y: bandTop + Math.random() * (bandBottom - bandTop),
+          r: 3,
+          vx: -5 - Math.random() * 2,
+          vy: (Math.random() - 0.5) * 0.5
+        });
+      }
     }
 
     function drawParticles() {
@@ -69,7 +73,7 @@
     }
 
     function updateParticles() {
-      for (let p of particles) {
+      particles = particles.filter(p => {
         p.x += p.vx;
         p.y += p.vy;
 
@@ -77,27 +81,28 @@
         if (p.y < bandTop + p.r || p.y > bandBottom - p.r) {
           p.vy *= -1;
         }
-      }
+
+        // Return true if still visible, else remove
+        return p.x + p.r > 0 && p.x - p.r < canvas.width;
+      });
     }
 
-    // Run once — draw 60 frames then stop
-    function runOnce(frames = 60) {
-      let count = 0;
-
+    function runUntilEmpty() {
       function step() {
-        if (count++ >= frames) return;
-
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         updateParticles();
         drawParticles();
-        requestAnimationFrame(step);
-      }
 
+        if (particles.length > 0) {
+          requestAnimationFrame(step);
+        }
+      }
       step();
     }
 
     startBtn.addEventListener("click", () => {
-      runOnce(60); // 60 frames ~1 second at 60fps
+      createParticles();
+      runUntilEmpty();
     });
   </script>
 </body>
