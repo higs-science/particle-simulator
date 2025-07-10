@@ -47,10 +47,12 @@
       let running = false;
       const bandTop = () => canvas.height * 0.25;
       const bandBottom = () => canvas.height * 0.75;
-      const numParticles = 50;
+      const batchSize = 5; // fewer particles per batch
+      const spawnInterval = 500; // new batch every 500ms
+      let spawnTimer = null;
 
       function createParticles() {
-        for (let i = 0; i < numParticles; i++) {
+        for (let i = 0; i < batchSize; i++) {
           particles.push({
             x: Math.random() * 100,
             y: bandTop() + Math.random() * (bandBottom() - bandTop()),
@@ -87,11 +89,6 @@
           }
         }
 
-        const allFullyVisible = particles.every(p => p.x - p.r > 0 && p.x + p.r < canvas.width);
-        if (allFullyVisible) {
-          createParticles();
-        }
-
         particles = particles.filter(p => p.x + p.r > 0 && p.x - p.r < canvas.width);
       }
 
@@ -103,16 +100,29 @@
         animationId = requestAnimationFrame(loop);
       }
 
+      function startSpawning() {
+        spawnTimer = setInterval(() => {
+          if (running) createParticles();
+        }, spawnInterval);
+      }
+
+      function stopSpawning() {
+        clearInterval(spawnTimer);
+        spawnTimer = null;
+      }
+
       startBtn.addEventListener("click", () => {
         if (!running) {
           running = true;
-          if (particles.length === 0) createParticles();
+          createParticles();
           loop();
+          startSpawning();
         }
       });
 
       stopBtn.addEventListener("click", () => {
         running = false;
+        stopSpawning();
         if (animationId) {
           cancelAnimationFrame(animationId);
           animationId = null;
@@ -121,6 +131,7 @@
 
       resetBtn.addEventListener("click", () => {
         running = false;
+        stopSpawning();
         particles = [];
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (animationId) {
