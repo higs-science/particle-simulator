@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>2D Particle Simulator - 100 Particles</title>
+  <title>2D Particle Simulator - Middle Band</title>
   <style>
     body { margin: 0; overflow: hidden; background: #111; }
     canvas { display: block; background: #111; }
@@ -11,60 +11,68 @@
 <body>
   <canvas id="sim"></canvas>
 
- <script>
-  const canvas = document.getElementById("sim");
-  const ctx = canvas.getContext("2d");
-  resizeCanvas();
+  <script>
+    const canvas = document.getElementById("sim");
+    const ctx = canvas.getContext("2d");
+    resizeCanvas();
 
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  window.addEventListener("resize", resizeCanvas);
-
-  const particles = [];
-
-  // 🎯 Beam starts on the left side, spread out vertically
-  for (let i = 0; i < 100; i++) {
-    particles.push({
-      x: Math.random() * 100, // Start near left edge
-      y: Math.random() * canvas.height,
-      r: 3,
-      vx: 5 + Math.random() * 2, // Mostly uniform rightward speed
-      vy: (Math.random() - 0.5) * 0.5 // Slight vertical variation
-    });
-  }
-
-  function drawParticles() {
-    ctx.fillStyle = "red";
-    for (let p of particles) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     }
-  }
+    window.addEventListener("resize", resizeCanvas);
 
-  function updateParticles() {
-    for (let p of particles) {
-      p.x += p.vx;
-      p.y += p.vy;
+    const particles = [];
 
-      // Wrap around when they reach the right edge
-      if (p.x - p.r > canvas.width) {
-        p.x = -p.r;
-        p.y = Math.random() * canvas.height;
+    const bandTop = canvas.height * 0.25;    // 2/4 start
+    const bandBottom = canvas.height * 0.75; // 3/4 end
+
+    // Create 100 particles in the middle 50% vertical band
+    for (let i = 0; i < 100; i++) {
+      particles.push({
+        x: Math.random() * 100,
+        y: bandTop + Math.random() * (bandBottom - bandTop),
+        r: 3,
+        vx: 5 + Math.random() * 2,
+        vy: (Math.random() - 0.5) * 0.5
+      });
+    }
+
+    function drawParticles() {
+      ctx.fillStyle = "red";
+      for (let p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
-  }
 
-  function loop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    updateParticles();
-    drawParticles();
-    requestAnimationFrame(loop);
-  }
+    function updateParticles() {
+      for (let p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
 
-  loop();
-</script>
+        // Bounce off top and bottom of the middle band
+        if (p.y < bandTop + p.r || p.y > bandBottom - p.r) {
+          p.vy *= -1;
+        }
+
+        // Wrap around horizontally
+        if (p.x - p.r > canvas.width) {
+          p.x = -p.r;
+          p.y = bandTop + Math.random() * (bandBottom - bandTop);
+        }
+      }
+    }
+
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      updateParticles();
+      drawParticles();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
 </body>
 </html>
