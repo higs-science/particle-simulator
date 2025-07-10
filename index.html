@@ -1,52 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Minimal1 Three.js + OrbitControls</title>
-  <style>
-    body { margin: 0; overflow: hidden; }
-    canvas { display: block; }
-  </style>
-</head>
-<body>
+<head><meta charset="UTF-8" /><title>Three.js bg fix</title></head>
+<body style="margin:0; overflow:hidden;">
 <script type="module">
   import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
   import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js';
 
-  // Scene setup
-  const scene = new THREE.Scene();
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0x111111);  // set background color here
-  document.body.appendChild(renderer.domElement);  
+  let scene, camera, renderer, controls;
 
-  // Camera setup
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 0, 5);
+  scene = new THREE.Scene();
 
-  // Renderer setup
-  const renderer = new THREE.WebGLRenderer({antialias: true});
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera.position.z = 5;
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x111111);  // dark bg color
   document.body.appendChild(renderer.domElement);
 
-  // OrbitControls setup
-  const controls = new OrbitControls(camera, renderer.domElement);
+  controls = new OrbitControls(camera, renderer.domElement);
 
-  // Resize handler
+  const geometry = new THREE.SphereGeometry(1, 32, 32);
+  const material = new THREE.MeshBasicMaterial({ color: 0xff0044 });
+  const sphere = new THREE.Mesh(geometry, material);
+  scene.add(sphere);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    sphere.rotation.y += 0.01;
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  // Animation loop
-  function animate() {
-    requestAnimationFrame(animate);
-    controls.update();  // required for damping or auto-rotation (if enabled)
-    renderer.render(scene, camera);
-  }
-
-  animate();
 </script>
 </body>
 </html>
