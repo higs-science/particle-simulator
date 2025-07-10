@@ -9,7 +9,45 @@
   </style>
 </head>
 <body>
-  <canvas id="canvas"></canvas>
-  <script type="module" src="main.js"></script>
+  <canvas id="sim"></canvas>
+
+  <script>
+    const canvas = document.getElementById("sim");
+    const ctx = canvas.getContext("2d");
+    resizeCanvas();
+
+    // 🔁 To update for 3D: replace <canvas> with WebGL or THREE.js renderer and scene
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // 🔁 To update for 3D: replace 2D drawing with 3D rendering logic
+      drawParticles();
+
+      requestAnimationFrame(loop);
+    }
+
+    const particles = []; // Will store all particles
+
+    function drawParticles() {
+      ctx.fillStyle = "red";
+      for (let p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Temporary test particle
+    particles.push({ x: 200, y: 200, r: 10 });
+
+    loop();
+  </script>
 </body>
 </html>
