@@ -2,18 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>2D Particle Simulator - Middle Band</title>
+  <title>2D Particle Collider</title>
   <style>
     body { margin: 0; overflow: hidden; background: #111; }
     canvas { display: block; background: #111; }
+    button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
+  <button id="startBtn">Start Simulation</button>
   <canvas id="sim"></canvas>
 
   <script>
     const canvas = document.getElementById("sim");
     const ctx = canvas.getContext("2d");
+    const startBtn = document.getElementById("startBtn");
     resizeCanvas();
 
     function resizeCanvas() {
@@ -23,17 +33,28 @@
     window.addEventListener("resize", resizeCanvas);
 
     const particles = [];
+    const bandTop = canvas.height * 0.25;
+    const bandBottom = canvas.height * 0.75;
+    const numParticles = 50; // per beam
 
-    const bandTop = canvas.height * 0.25;    // 2/4 start
-    const bandBottom = canvas.height * 0.75; // 3/4 end
-
-    // Create 100 particles in the middle 50% vertical band
-    for (let i = 0; i < 100; i++) {
+    // Right-moving beam (left to right)
+    for (let i = 0; i < numParticles; i++) {
       particles.push({
         x: Math.random() * 100,
         y: bandTop + Math.random() * (bandBottom - bandTop),
         r: 3,
         vx: 5 + Math.random() * 2,
+        vy: (Math.random() - 0.5) * 0.5
+      });
+    }
+
+    // Left-moving beam (right to left)
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: canvas.width - Math.random() * 100,
+        y: bandTop + Math.random() * (bandBottom - bandTop),
+        r: 3,
+        vx: -5 - Math.random() * 2,
         vy: (Math.random() - 0.5) * 0.5
       });
     }
@@ -52,27 +73,32 @@
         p.x += p.vx;
         p.y += p.vy;
 
-        // Bounce off top and bottom of the middle band
+        // Bounce vertically within beam band
         if (p.y < bandTop + p.r || p.y > bandBottom - p.r) {
           p.vy *= -1;
-        }
-
-        // Wrap around horizontally
-        if (p.x - p.r > canvas.width) {
-          p.x = -p.r;
-          p.y = bandTop + Math.random() * (bandBottom - bandTop);
         }
       }
     }
 
-    function loop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      updateParticles();
-      drawParticles();
-      requestAnimationFrame(loop);
+    // Run once — draw 60 frames then stop
+    function runOnce(frames = 60) {
+      let count = 0;
+
+      function step() {
+        if (count++ >= frames) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        updateParticles();
+        drawParticles();
+        requestAnimationFrame(step);
+      }
+
+      step();
     }
 
-    loop();
+    startBtn.addEventListener("click", () => {
+      runOnce(60); // 60 frames ~1 second at 60fps
+    });
   </script>
 </body>
 </html>
