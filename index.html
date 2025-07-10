@@ -2,65 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>2D Particle Collider</title>
+  <title>2D Endless Particle Collider</title>
   <style>
     body { margin: 0; overflow: hidden; background: #111; }
     canvas { display: block; background: #111; }
-    button {
+    #controls {
       position: absolute;
       top: 10px;
       left: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
       z-index: 10;
+    }
+    button {
+      margin-right: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <button id="startBtn">Start Simulation</button>
+  <div id="controls">
+    <button id="startBtn">Start</button>
+    <button id="stopBtn">Stop</button>
+    <button id="resetBtn">Reset</button>
+  </div>
   <canvas id="sim"></canvas>
 
   <script>
     const canvas = document.getElementById("sim");
     const ctx = canvas.getContext("2d");
-    const startBtn = document.getElementById("startBtn");
+
     resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    let particles = [];
+    let animationId = null;
+    const numParticlesPerFrame = 2;
+    const bandTop = () => canvas.height * 0.25;
+    const bandBottom = () => canvas.height * 0.75;
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
-    window.addEventListener("resize", resizeCanvas);
 
-    let particles = [];
-    const bandTop = canvas.height * 0.25;
-    const bandBottom = canvas.height * 0.75;
-    const numParticles = 50; // per beam
+    function createParticle(fromLeft = true) {
+      return {
+        x: fromLeft ? -10 : canvas.width + 10,
+        y: bandTop() + Math.random() * (bandBottom() - bandTop()),
+        r: 3,
+        vx: fromLeft ? 5 + Math.random() * 2 : -5 - Math.random() * 2,
+        vy: (Math.random() - 0.5) * 0.5
+      };
+    }
 
-    function createParticles() {
-      particles = [];
-
-      // Right-moving beam
-      for (let i = 0; i < numParticles; i++) {
-        particles.push({
-          x: Math.random() * 100,
-          y: bandTop + Math.random() * (bandBottom - bandTop),
-          r: 3,
-          vx: 5 + Math.random() * 2,
-          vy: (Math.random() - 0.5) * 0.5
-        });
+    function updateParticles() {
+      for (let i = 0; i < numParticlesPerFrame; i++) {
+        particles.push(createParticle(true));  // left to right
+        particles.push(createParticle(false)); // right to left
       }
 
-      // Left-moving beam
-      for (let i = 0; i < numParticles; i++) {
-        particles.push({
-          x: canvas.width - Math.random() * 100,
-          y: bandTop + Math.random() * (bandBottom - bandTop),
-          r: 3,
-          vx: -5 - Math.random() * 2,
-          vy: (Math.random() - 0.5) * 0.5
-        });
-      }
+      particles = particles.filter(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
+          p.vy *= -1;
+        }
+
+        return p.x + p.r > 0 && p.x - p.r < canvas.width;
+      });
     }
 
     function drawParticles() {
@@ -72,37 +82,27 @@
       }
     }
 
-    function updateParticles() {
-      particles = particles.filter(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        // Bounce vertically within beam band
-        if (p.y < bandTop + p.r || p.y > bandBottom - p.r) {
-          p.vy *= -1;
-        }
-
-        // Return true if still visible, else remove
-        return p.x + p.r > 0 && p.x - p.r < canvas.width;
-      });
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      updateParticles();
+      drawParticles();
+      animationId = requestAnimationFrame(loop);
     }
 
-    function runUntilEmpty() {
-      function step() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        updateParticles();
-        drawParticles();
+    document.getElementById("startBtn").addEventListener("click", () => {
+      if (!animationId) loop();
+    });
 
-        if (particles.length > 0) {
-          requestAnimationFrame(step);
-        }
+    document.getElementById("stopBtn").addEventListener("click", () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
       }
-      step();
-    }
+    });
 
-    startBtn.addEventListener("click", () => {
-      createParticles();
-      runUntilEmpty();
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      particles = [];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
   </script>
 </body>
