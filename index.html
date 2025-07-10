@@ -11,58 +11,60 @@
 <body>
   <canvas id="sim"></canvas>
 
-  <script>
-    const canvas = document.getElementById("sim");
-    const ctx = canvas.getContext("2d");
-    resizeCanvas();
+ <script>
+  const canvas = document.getElementById("sim");
+  const ctx = canvas.getContext("2d");
+  resizeCanvas();
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resizeCanvas);
+
+  const particles = [];
+
+  // 🎯 Beam starts on the left side, spread out vertically
+  for (let i = 0; i < 100; i++) {
+    particles.push({
+      x: Math.random() * 100, // Start near left edge
+      y: Math.random() * canvas.height,
+      r: 3,
+      vx: 5 + Math.random() * 2, // Mostly uniform rightward speed
+      vy: (Math.random() - 0.5) * 0.5 // Slight vertical variation
+    });
+  }
+
+  function drawParticles() {
+    ctx.fillStyle = "red";
+    for (let p of particles) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
     }
-    window.addEventListener("resize", resizeCanvas);
+  }
 
-    const particles = [];
+  function updateParticles() {
+    for (let p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
 
-    // 🎯 Generate 100 fast particles like in accelerators
-    for (let i = 0; i < 100; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        r: 3,
-        vx: (Math.random() - 0.5) * 8,
-        vy: (Math.random() - 0.5) * 8
-      });
-    }
-
-    function drawParticles() {
-      ctx.fillStyle = "red";
-      for (let p of particles) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
+      // Wrap around when they reach the right edge
+      if (p.x - p.r > canvas.width) {
+        p.x = -p.r;
+        p.y = Math.random() * canvas.height;
       }
     }
+  }
 
-    function updateParticles() {
-      for (let p of particles) {
-        p.x += p.vx;
-        p.y += p.vy;
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    updateParticles();
+    drawParticles();
+    requestAnimationFrame(loop);
+  }
 
-        // Bounce off walls
-        if (p.x - p.r < 0 || p.x + p.r > canvas.width) p.vx *= -1;
-        if (p.y - p.r < 0 || p.y + p.r > canvas.height) p.vy *= -1;
-      }
-    }
-
-    function loop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      updateParticles();
-      drawParticles();
-      requestAnimationFrame(loop);
-    }
-
-    loop();
-  </script>
+  loop();
+</script>
 </body>
 </html>
