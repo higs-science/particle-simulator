@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>3D Sphere with OrbitControls</title>
+  <title>Red Sphere</title>
   <style>
     body { margin: 0; overflow: hidden; background: #000; }
     canvas { display: block; }
@@ -10,38 +10,32 @@
 </head>
 <body>
   <script type="module">
-    // ✅ Import Three.js and OrbitControls from CDN
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.module.js';
     import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.154.0/examples/jsm/controls/OrbitControls.js';
 
-    // 🔧 Setup basic scene
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // 🎯 Add red sphere
     const geometry = new THREE.SphereGeometry(1, 32, 32);
     const material = new THREE.MeshBasicMaterial({ color: 0xff0044 });
     const sphere = new THREE.Mesh(geometry, material);
     scene.add(sphere);
 
-    // 🎮 Add orbit controls
     const controls = new OrbitControls(camera, renderer.domElement);
 
-    // 🔁 Animation loop
     function animate() {
       requestAnimationFrame(animate);
-      controls.update(); // only needed if damping is enabled
+      controls.update();
       renderer.render(scene, camera);
     }
 
     animate();
 
-    // 🪟 Handle window resize
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
