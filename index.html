@@ -20,11 +20,17 @@
   </style>
 </head>
 <body>
-  <div id="controls">
-    <button id="startBtn">Start</button>
-    <button id="stopBtn">Stop</button>
-    <button id="resetBtn">Reset</button>
-  </div>
+<div id="controls">
+  <button id="startBtn">Start</button>
+  <button id="stopBtn">Stop</button>
+  <button id="resetBtn">Reset</button>
+
+  <label for="zoomSlider" style="color: white; margin-left: 20px; display: flex; align-items: center; gap: 8px;">
+    Zoom:
+    <input id="zoomSlider" type="range" min="0" max="1" step="1" value="0" />
+    <span id="zoomLabel">Normal</span>
+  </label>
+</div>
   <canvas id="sim"></canvas>
   <script>
     window.addEventListener("DOMContentLoaded", () => {
