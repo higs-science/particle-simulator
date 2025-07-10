@@ -1,109 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>2D Particle Collider</title>
-  <style>
-    body { margin: 0; overflow: hidden; background: #111; }
-    canvas { display: block; background: #111; }
-    button {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      z-index: 10;
-    }
-  </style>
-</head>
-<body>
-  <button id="startBtn">Start Simulation</button>
-  <canvas id="sim"></canvas>
+<script>
+  const canvas = document.getElementById("sim");
+  const ctx = canvas.getContext("2d");
+  const startBtn = document.getElementById("startBtn");
+  resizeCanvas();
 
-  <script>
-    const canvas = document.getElementById("sim");
-    const ctx = canvas.getContext("2d");
-    const startBtn = document.getElementById("startBtn");
-    resizeCanvas();
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resizeCanvas);
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener("resize", resizeCanvas);
+  let particles = [];
+  let animationId = null;
+  let running = false;
+  const bandTop = () => canvas.height * 0.25;
+  const bandBottom = () => canvas.height * 0.75;
+  const numParticles = 50;
 
-    let particles = [];
-    const bandTop = canvas.height * 0.25;
-    const bandBottom = canvas.height * 0.75;
-    const numParticles = 50; // per beam
-
-    function createParticles() {
-      particles = [];
-
-      // Right-moving beam
-      for (let i = 0; i < numParticles; i++) {
-        particles.push({
-          x: Math.random() * 100,
-          y: bandTop + Math.random() * (bandBottom - bandTop),
-          r: 3,
-          vx: 5 + Math.random() * 2,
-          vy: (Math.random() - 0.5) * 0.5
-        });
-      }
-
-      // Left-moving beam
-      for (let i = 0; i < numParticles; i++) {
-        particles.push({
-          x: canvas.width - Math.random() * 100,
-          y: bandTop + Math.random() * (bandBottom - bandTop),
-          r: 3,
-          vx: -5 - Math.random() * 2,
-          vy: (Math.random() - 0.5) * 0.5
-        });
-      }
-    }
-
-    function drawParticles() {
-      ctx.fillStyle = "red";
-      for (let p of particles) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    function updateParticles() {
-      particles = particles.filter(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        // Bounce vertically within beam band
-        if (p.y < bandTop + p.r || p.y > bandBottom - p.r) {
-          p.vy *= -1;
-        }
-
-        // Return true if still visible, else remove
-        return p.x + p.r > 0 && p.x - p.r < canvas.width;
+  function createParticles() {
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * 100,
+        y: bandTop() + Math.random() * (bandBottom() - bandTop()),
+        r: 3,
+        vx: 5 + Math.random() * 2,
+        vy: (Math.random() - 0.5) * 0.5
+      });
+      particles.push({
+        x: canvas.width - Math.random() * 100,
+        y: bandTop() + Math.random() * (bandBottom() - bandTop()),
+        r: 3,
+        vx: -5 - Math.random() * 2,
+        vy: (Math.random() - 0.5) * 0.5
       });
     }
+  }
 
-    function runUntilEmpty() {
-      function step() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        updateParticles();
-        drawParticles();
+  function drawParticles() {
+    ctx.fillStyle = "red";
+    for (let p of particles) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 
-        if (particles.length > 0) {
-          requestAnimationFrame(step);
-        }
+  function updateParticles() {
+    for (let p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
+        p.vy *= -1;
       }
-      step();
     }
 
-    startBtn.addEventListener("click", () => {
+    // Only spawn new batch if ALL particles are now fully onscreen
+    const allFullyVisible = particles.every(p => p.x - p.r > 0 && p.x + p.r < canvas.width);
+    if (allFullyVisible) {
       createParticles();
-      runUntilEmpty();
-    });
-  </script>
-</body>
-</html>
+    }
+
+    // Remove particles that have gone off-screen completely
+    particles = particles.filter(p => p.x + p.r > 0 && p.x - p.r < canvas.width);
+  }
+
+  function loop() {
+    if (!running) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    updateParticles();
+    drawParticles();
+    animationId = requestAnimationFrame(loop);
+  }
+
+  startBtn.addEventListener("click", () => {
+    if (!running) {
+      particles = [];
+      createParticles();
+      running = true;
+      loop();
+    }
+  });
+</script>
