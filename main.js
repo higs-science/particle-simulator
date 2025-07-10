@@ -45,14 +45,28 @@ for (let i = 0; i < 10; i++) {
     (Math.random() - 0.5) * 4
   ));
 }
+let zoomLevel = 1;        // 1 = normal size, >1 = zoomed in
+let zoomCenter = { x: canvas.width / 2, y: canvas.height / 2 };  // zoom center point
 
 function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save(); // Save current transform
+
+  // Translate to zoom center, scale, then translate back
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.scale(zoomLevel, zoomLevel);
+  ctx.translate(-zoomCenter.x, -zoomCenter.y);
+
   for (const particle of particles) {
     particle.update();
     particle.draw(ctx);
   }
+
+  ctx.restore(); // Restore to original state
+
   requestAnimationFrame(animate);
 }
+
 
 animate();
