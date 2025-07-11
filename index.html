@@ -155,7 +155,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function detectCollisions() {
-    const collisionChance = 1e-7; // Adjust this to match desired frequency
+    const collisionChance = 1e-2; // Adjust this to match desired frequency
 
     for (let i = 0; i < particles.length; i++) {
       for (let j = i + 1; j < particles.length; j++) {
