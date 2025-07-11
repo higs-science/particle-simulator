@@ -62,6 +62,12 @@ window.addEventListener("DOMContentLoaded", () => {
   const resetBtn = document.getElementById("resetBtn");
   const zoomSlider = document.getElementById("zoomSlider");
   const zoomLabel = document.querySelector("#controls span#zoomLabel");
+  const timeScaleInput = document.getElementById("timeScaleInput");
+  let timeScale = 1;
+
+  timeScaleInput.addEventListener("input", () => {
+    timeScale = parseFloat(timeScaleInput.value) || 1;
+  });
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
