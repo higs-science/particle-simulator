@@ -136,8 +136,6 @@ window.addEventListener("DOMContentLoaded", () => {
       ctx.fill();
     }
 
-    }
-
     // Fade collisions after short time
     collisions = collisions.filter(c => Date.now() - c.time < 200);
   }
