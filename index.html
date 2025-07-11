@@ -11,17 +11,6 @@
       top: 10px;
       left: 10px;
       z-index: 10;
-    }
-    button {
-      margin-right: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-    }
-    #controls {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 10;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -33,6 +22,14 @@
     #zoomSlider {
       vertical-align: middle;
     }
+    label {
+      color: white;
+      margin-left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -41,167 +38,212 @@
   <button id="stopBtn">Stop</button>
   <button id="resetBtn">Reset</button>
 
-  <label for="zoomSlider" style="color: white; margin-left: 20px; display: flex; align-items: center; gap: 8px;">
+  <label for="zoomSlider">
     Zoom:
-    <input id="zoomSlider" type="range" min="0" max="1" step="1" value="0" />
-    <span id="zoomLabel">Normal</span>
+    <input id="zoomSlider" type="range" min="1" max="100" step="1" value="100" />
+    <span id="zoomLabel">100%</span>
   </label>
 </div>
-  <canvas id="sim"></canvas>
-  <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const canvas = document.getElementById("sim");
-      const ctx = canvas.getContext("2d");
-      const startBtn = document.getElementById("startBtn");
-      const stopBtn = document.getElementById("stopBtn");
-      const resetBtn = document.getElementById("resetBtn");
-  
-      function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+
+<canvas id="sim"></canvas>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  const canvas = document.getElementById("sim");
+  const ctx = canvas.getContext("2d");
+  const startBtn = document.getElementById("startBtn");
+  const stopBtn = document.getElementById("stopBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const zoomSlider = document.getElementById("zoomSlider");
+  const zoomLabel = document.querySelector("#controls span#zoomLabel");
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener("resize", resizeCanvas);
+
+  let particles = [];
+  let collisions = [];
+  let animationId = null;
+  let running = false;
+  const bandTop = () => canvas.height * 0.25;
+  const bandBottom = () => canvas.height * 0.75;
+  const batchSize = 10;
+  const spawnInterval = 500;
+  let spawnTimer = null;
+
+  // Zoom variables
+  let zoomLevel = 1; // scale factor (1 = normal)
+  let zoomCenter = { x: canvas.width / 2, y: canvas.height / 2 };
+
+  // Initialize zoom slider and label
+  zoomLabel.textContent = zoomSlider.value + "%";
+
+  zoomSlider.addEventListener("input", () => {
+    const val = parseInt(zoomSlider.value);
+    zoomLabel.textContent = val + "%";
+    // Map slider 1..100 to zoomLevel 100..1 (inverted)
+    zoomLevel = 101 - val;
+    if (zoomLevel < 1) zoomLevel = 1;
+    if (zoomLevel > 100) zoomLevel = 100;
+  });
+
+  function createParticles() {
+    for (let i = 0; i < batchSize; i++) {
+      particles.push({
+        x: Math.random() * 100,
+        y: bandTop() + Math.random() * (bandBottom() - bandTop()),
+        r: 3,
+        vx: 5 + Math.random() * 2,
+        vy: (Math.random() - 0.5) * 0.5,
+        beam: "right"
+      });
+      particles.push({
+        x: canvas.width - Math.random() * 100,
+        y: bandTop() + Math.random() * (bandBottom() - bandTop()),
+        r: 3,
+        vx: -5 - Math.random() * 2,
+        vy: (Math.random() - 0.5) * 0.5,
+        beam: "left"
+      });
+    }
+  }
+
+  function drawParticles() {
+    ctx.fillStyle = "red";
+    for (let p of particles) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Draw collision flashes
+    for (let c of collisions) {
+      ctx.fillStyle = "yellow";
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Fade collisions after short time
+    collisions = collisions.filter(c => Date.now() - c.time < 200);
+  }
+
+  function updateParticles() {
+    for (let p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
+        p.vy *= -1;
       }
-      resizeCanvas();
-      window.addEventListener("resize", resizeCanvas);
-  
-      let particles = [];
-      let collisions = [];
-      let animationId = null;
-      let running = false;
-      const bandTop = () => canvas.height * 0.25;
-      const bandBottom = () => canvas.height * 0.75;
-      const batchSize = 10;
-      const spawnInterval = 500;
-      let spawnTimer = null;
-  
-      function createParticles() {
-        for (let i = 0; i < batchSize; i++) {
-          particles.push({
-            x: Math.random() * 100,
-            y: bandTop() + Math.random() * (bandBottom() - bandTop()),
-            r: 3,
-            vx: 5 + Math.random() * 2,
-            vy: (Math.random() - 0.5) * 0.5,
-            beam: "right"
-          });
-          particles.push({
-            x: canvas.width - Math.random() * 100,
-            y: bandTop() + Math.random() * (bandBottom() - bandTop()),
-            r: 3,
-            vx: -5 - Math.random() * 2,
-            vy: (Math.random() - 0.5) * 0.5,
-            beam: "left"
-          });
-        }
-      }
-  
-      function drawParticles() {
-        ctx.fillStyle = "red";
-        for (let p of particles) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fill();
-        }
-  
-        // Draw collision flashes
-        for (let c of collisions) {
-          ctx.fillStyle = "yellow";
-          ctx.beginPath();
-          ctx.arc(c.x, c.y, 6, 0, Math.PI * 2);
-          ctx.fill();
-        }
-  
-        // Fade collisions after short time
-        collisions = collisions.filter(c => Date.now() - c.time < 200);
-      }
-  
-      function updateParticles() {
-        for (let p of particles) {
-          p.x += p.vx;
-          p.y += p.vy;
-          if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
-            p.vy *= -1;
+    }
+
+    particles = particles.filter(p => p.x + p.r > 0 && p.x - p.r < canvas.width);
+
+    detectCollisions();
+  }
+
+  function detectCollisions() {
+    const collisionChance = 1e-7; // Adjust this to match desired frequency
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i];
+        const b = particles[j];
+
+        // Only check opposite-direction beams
+        if (a.beam === b.beam) continue;
+
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const distSq = dx * dx + dy * dy;
+        const radiusSum = a.r + b.r;
+
+        if (distSq < radiusSum * radiusSum) {
+          if (Math.random() < collisionChance) {
+            collisions.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, time: Date.now() });
           }
         }
-  
-        particles = particles.filter(p => p.x + p.r > 0 && p.x - p.r < canvas.width);
-  
-        detectCollisions();
       }
-  
-      function detectCollisions() {
-        const collisionChance = 1e-7; // Adjust this to match desired frequency
-  
-        for (let i = 0; i < particles.length; i++) {
-          for (let j = i + 1; j < particles.length; j++) {
-            const a = particles[i];
-            const b = particles[j];
-  
-            // Only check opposite-direction beams
-            if (a.beam === b.beam) continue;
-  
-            const dx = a.x - b.x;
-            const dy = a.y - b.y;
-            const distSq = dx * dx + dy * dy;
-            const radiusSum = a.r + b.r;
-  
-            if (distSq < radiusSum * radiusSum) {
-              if (Math.random() < collisionChance) {
-                collisions.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, time: Date.now() });
-              }
-            }
-          }
-        }
-      }
-  
-      function loop() {
-        if (!running) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        updateParticles();
-        drawParticles();
-        animationId = requestAnimationFrame(loop);
-      }
-  
-      function startSpawning() {
-        spawnTimer = setInterval(() => {
-          if (running) createParticles();
-        }, spawnInterval);
-      }
-  
-      function stopSpawning() {
-        clearInterval(spawnTimer);
-        spawnTimer = null;
-      }
-  
-      startBtn.addEventListener("click", () => {
-        if (!running) {
-          running = true;
-          createParticles();
-          loop();
-          startSpawning();
-        }
-      });
-  
-      stopBtn.addEventListener("click", () => {
-        running = false;
-        stopSpawning();
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-          animationId = null;
-        }
-      });
-  
-      resetBtn.addEventListener("click", () => {
-        running = false;
-        stopSpawning();
-        particles = [];
-        collisions = [];
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-          animationId = null;
-        }
-      });
-    });
+    }
+  }
+
+  function loop() {
+    if (!running) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Update zoom center based on zoom level
+    if (zoomLevel > 10 && particles.length >= 2) {
+      // Zoomed in: center between first two particles
+      const p1 = particles[0];
+      const p2 = particles[1];
+      zoomCenter.x = (p1.x + p2.x) / 2;
+      zoomCenter.y = (p1.y + p2.y) / 2;
+    } else {
+      // Zoomed out: center on canvas center
+      zoomCenter.x = canvas.width / 2;
+      zoomCenter.y = canvas.height / 2;
+    }
+
+    ctx.save();
+    // Translate to center of canvas
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    // Scale for zoom
+    ctx.scale(zoomLevel, zoomLevel);
+    // Translate zoom center to origin
+    ctx.translate(-zoomCenter.x, -zoomCenter.y);
+
+    updateParticles();
+    drawParticles();
+
+    ctx.restore();
+
+    animationId = requestAnimationFrame(loop);
+  }
+
+  function startSpawning() {
+    spawnTimer = setInterval(() => {
+      if (running) createParticles();
+    }, spawnInterval);
+  }
+
+  function stopSpawning() {
+    clearInterval(spawnTimer);
+    spawnTimer = null;
+  }
+
+  startBtn.addEventListener("click", () => {
+    if (!running) {
+      running = true;
+      createParticles();
+      loop();
+      startSpawning();
+    }
+  });
+
+  stopBtn.addEventListener("click", () => {
+    running = false;
+    stopSpawning();
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+  });
+
+  resetBtn.addEventListener("click", () => {
+    running = false;
+    stopSpawning();
+    particles = [];
+    collisions = [];
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+  });
+});
 </script>
 </body>
 </html>
