@@ -48,7 +48,14 @@
     Time Scale:
     <input id="timeScaleInput" type="number" min="0.01" max="10" step="0.1" value="1" />
   </label>
+  
+  <label for="particleCountInput">
+    Particle Count:
+    <input id="particleCountInput" type="range" min="1" max="100" step="1" value="10" />
+    <span id="particleCountLabel">10</span>
+  </label>
 
+  
 </div>
 
 <canvas id="sim"></canvas>
@@ -64,7 +71,17 @@ window.addEventListener("DOMContentLoaded", () => {
   const zoomLabel = document.querySelector("#controls span#zoomLabel");
   const timeScaleInput = document.getElementById("timeScaleInput");
   let timeScale = 1;
+  
+  const particleCountInput = document.getElementById("particleCountInput");
+  const particleCountLabel = document.getElementById("particleCountLabel");
+  let batchSize = parseInt(particleCountInput.value);
+  
+  particleCountInput.addEventListener("input", () => {
+    batchSize = parseInt(particleCountInput.value);
+    particleCountLabel.textContent = batchSize;
+  });
 
+  
   timeScaleInput.addEventListener("input", () => {
     timeScale = parseFloat(timeScaleInput.value) || 1;
   });
@@ -103,12 +120,15 @@ window.addEventListener("DOMContentLoaded", () => {
     if (zoomLevel > 100) zoomLevel = 100;
   });
 
-  function createParticles() {
+   function createParticles() {
+    const baseRadius = 6;
+    const scaledRadius = baseRadius * (10 / batchSize); // Fewer particles = bigger radius
+  
     for (let i = 0; i < batchSize; i++) {
       particles.push({
         x: Math.random() * 100,
         y: bandTop() + Math.random() * (bandBottom() - bandTop()),
-        r: 3,
+        r: scaledRadius,
         vx: 5 + Math.random() * 2,
         vy: (Math.random() - 0.5) * 0.5,
         beam: "right"
@@ -116,13 +136,14 @@ window.addEventListener("DOMContentLoaded", () => {
       particles.push({
         x: canvas.width - Math.random() * 100,
         y: bandTop() + Math.random() * (bandBottom() - bandTop()),
-        r: 3,
+        r: scaledRadius,
         vx: -5 - Math.random() * 2,
         vy: (Math.random() - 0.5) * 0.5,
         beam: "left"
       });
     }
   }
+
 
   function drawParticles() {
     ctx.fillStyle = "red";
