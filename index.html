@@ -120,11 +120,21 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     // Draw collision flashes
-    for (let c of collisions) {
-      ctx.fillStyle = "yellow";
+    const now = Date.now();
+    for (let i = collisions.length - 1; i >= 0; i--) {
+      const c = collisions[i];
+      const elapsed = now - c.time;
+      const duration = 300;
+      if (elapsed > duration) {
+        collisions.splice(i, 1);
+        continue;
+      }
+      const alpha = 1 - elapsed / duration;
+      ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
       ctx.beginPath();
-      ctx.arc(c.x, c.y, 6, 0, Math.PI * 2);
+      ctx.arc(c.x, c.y, 15 * alpha, 0, Math.PI * 2);
       ctx.fill();
+}
     }
 
     // Fade collisions after short time
