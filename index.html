@@ -43,6 +43,12 @@
     <input id="zoomSlider" type="range" min="1" max="100" step="1" value="100" />
     <span id="zoomLabel">100%</span>
   </label>
+
+  <label for="timeScaleInput">
+    Time Scale:
+    <input id="timeScaleInput" type="number" min="0.01" max="10" step="0.1" value="1" />
+  </label>
+
 </div>
 
 <canvas id="sim"></canvas>
@@ -124,7 +130,7 @@ window.addEventListener("DOMContentLoaded", () => {
     for (let i = collisions.length - 1; i >= 0; i--) {
       const c = collisions[i];
       const elapsed = now - c.time;
-      const duration = 300;
+      const duration = 300 / timescale;
       if (elapsed > duration) {
         collisions.splice(i, 1);
         continue;
@@ -142,8 +148,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function updateParticles() {
     for (let p of particles) {
-      p.x += p.vx;
-      p.y += p.vy;
+      p.x += p.vx * timescale;
+      p.y += p.vy * timescale;
       if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
         p.vy *= -1;
       }
