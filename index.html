@@ -74,6 +74,13 @@ window.addEventListener("DOMContentLoaded", () => {
   let collisions = [];
   let animationId = null;
   let running = false;
+  const timeScaleInput = document.getElementById("timeScaleInput");
+  let timeScale = 1;
+
+  timeScaleInput.addEventListener("input", () => {
+    timeScale = parseFloat(timeScaleInput.value) || 1;
+  });
+
   const bandTop = () => canvas.height * 0.25;
   const bandBottom = () => canvas.height * 0.75;
   const batchSize = 10;
