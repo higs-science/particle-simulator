@@ -45,28 +45,60 @@ for (let i = 0; i < 10; i++) {
     (Math.random() - 0.5) * 4
   ));
 }
-let zoomLevel = 1;        // 1 = normal size, >1 = zoomed in
-let zoomCenter = { x: canvas.width / 2, y: canvas.height / 2 };  // zoom center point
+
+let zoomLevel = 1; // 1 = normal zoom
+let zoomCenter = { x: canvas.width / 2, y: canvas.height / 2 };
+
+// Setup zoom slider and label
+const zoomSlider = document.getElementById('zoomSlider');
+const zoomLabel = document.getElementById('zoomLabel');
+
+if (zoomSlider && zoomLabel) {
+  zoomLabel.textContent = zoomSlider.value + '%';
+  zoomSlider.addEventListener('input', () => {
+    const val = parseInt(zoomSlider.value, 10);
+    zoomLabel.textContent = val + '%';
+    // Invert slider so 100% = zoomLevel 1, 1% = zoomLevel 100
+    zoomLevel = 101 - val;
+    if (zoomLevel < 1) zoomLevel = 1;
+    if (zoomLevel > 100) zoomLevel = 100;
+  });
+}
 
 function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.save(); // Save current transform
+  // Update zoom center based on zoom level and particles
+  if (zoomLevel > 10 && particles.length >= 2) {
+    // Zoomed in: center between first two particles
+    const p1 = particles[0].position;
+    const p2 = particles[1].position;
+    zoomCenter.x = (p1.x + p2.x) / 2;
+    zoomCenter.y = (p1.y + p2.y) / 2;
+  } else {
+    // Zoomed out: center on canvas center
+    zoomCenter.x = canvas.width / 2;
+    zoomCenter.y = canvas.height / 2;
+  }
 
-  // Translate to zoom center, scale, then translate back
+  ctx.save();
+
+  // Move origin to canvas center
   ctx.translate(canvas.width / 2, canvas.height / 2);
+  // Scale (zoom)
   ctx.scale(zoomLevel, zoomLevel);
+  // Translate to zoom center
   ctx.translate(-zoomCenter.x, -zoomCenter.y);
 
+  // Draw and update all particles
   for (const particle of particles) {
     particle.update();
     particle.draw(ctx);
   }
 
-  ctx.restore(); // Restore to original state
+  ctx.restore();
 
   requestAnimationFrame(animate);
 }
-
 
 animate();
