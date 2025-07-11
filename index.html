@@ -80,12 +80,6 @@ window.addEventListener("DOMContentLoaded", () => {
   let collisions = [];
   let animationId = null;
   let running = false;
-  const timeScaleInput = document.getElementById("timeScaleInput");
-  let timeScale = 1;
-
-  timeScaleInput.addEventListener("input", () => {
-    timeScale = parseFloat(timeScaleInput.value) || 1;
-  });
 
   const bandTop = () => canvas.height * 0.25;
   const bandBottom = () => canvas.height * 0.75;
@@ -143,7 +137,7 @@ window.addEventListener("DOMContentLoaded", () => {
     for (let i = collisions.length - 1; i >= 0; i--) {
       const c = collisions[i];
       const elapsed = now - c.time;
-      const duration = 300 / timescale;
+      const duration = 300 / timeScale;  // ✅ correct
       if (elapsed > duration) {
         collisions.splice(i, 1);
         continue;
@@ -161,8 +155,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function updateParticles() {
     for (let p of particles) {
-      p.x += p.vx * timescale;
-      p.y += p.vy * timescale;
+      p.x += p.vx * timeScale;
+      p.y += p.vy * timeScale;
       if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
         p.vy *= -1;
       }
