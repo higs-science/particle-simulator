@@ -226,9 +226,12 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function startSpawning() {
-    spawnTimer = setInterval(() => {
-      if (running) createParticles();
-    }, spawnInterval);
+    function spawnLoop() {
+      if (!running) return;
+      createParticles();
+      setTimeout(spawnLoop, spawnInterval / timeScale); // scaled spawn speed
+    }
+    spawnLoop();
   }
 
   function stopSpawning() {
