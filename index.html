@@ -10,7 +10,7 @@
       background: #111;
       color: white;
     }
-  
+    
     canvas {
       display: block;
       background: #111;
@@ -133,7 +133,6 @@
 
 
 <canvas id="sim"></canvas>
-
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("sim");
@@ -205,6 +204,7 @@ window.addEventListener("DOMContentLoaded", () => {
         vx: 5 + Math.random() * 2,
         vy: (Math.random() - 0.5) * 0.5,
         beam: "right"
+        color: selectedParticles.right.color
       });
       particles.push({
         x: canvas.width - Math.random() * 100,
@@ -213,13 +213,14 @@ window.addEventListener("DOMContentLoaded", () => {
         vx: -5 - Math.random() * 2,
         vy: (Math.random() - 0.5) * 0.5,
         beam: "left"
+        color: selectedParticles.left.color
       });
     }
   }
 
 
   function drawParticles() {
-    ctx.fillStyle = "red";
+    ctx.fillStyle = p.color;
     for (let p of particles) {
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
@@ -369,6 +370,75 @@ window.addEventListener("DOMContentLoaded", () => {
       animationId = null;
     }
   });
+
+  const leftParticleBtn = document.getElementById('leftParticleBtn');
+  const rightParticleBtn = document.getElementById('rightParticleBtn');
+  const particleModal = document.getElementById('particleModal');
+  const beamSideLabel = document.getElementById('beamSideLabel');
+  const normalParticlesContainer = document.getElementById('normalParticles');
+  const antiParticlesContainer = document.getElementById('antiParticles');
+  const closeModalBtn = document.getElementById('closeParticleModal');
+  
+  let selectingSide = 'left';
+  
+  let selectedParticles = {
+    left: { name: 'Electron', color: '#00f' },
+    right: { name: 'Anti-Electron', color: '#0f0' }
+  };
+  
+  const standardModelParticles = [
+    { name: 'Electron', color: '#00f' },
+    { name: 'Muon', color: '#0ff' },
+    { name: 'Tau', color: '#08f' },
+    { name: 'Up Quark', color: '#f00' },
+    { name: 'Down Quark', color: '#fa0' },
+    { name: 'Strange Quark', color: '#ff0' },
+    { name: 'Charm Quark', color: '#0f0' },
+    { name: 'Bottom Quark', color: '#0a0' },
+    { name: 'Top Quark', color: '#800' },
+    { name: 'Photon', color: '#fff' },
+    { name: 'Z Boson', color: '#ccc' },
+    { name: 'W Boson', color: '#999' }
+  ];
+  
+  function populateParticleGrid(grid, particles) {
+    grid.innerHTML = '';
+    particles.forEach(p => {
+      const btn = document.createElement('div');
+      btn.className = 'particle-button';
+      btn.textContent = p.name;
+      btn.style.backgroundColor = p.color;
+      btn.addEventListener('click', () => {
+        selectedParticles[selectingSide] = p;
+        particleModal.classList.remove('show');
+      });
+      grid.appendChild(btn);
+    });
+  }
+  
+  leftParticleBtn.addEventListener('click', () => {
+    selectingSide = 'left';
+    beamSideLabel.textContent = 'left';
+    particleModal.classList.add('show');
+  });
+  
+  rightParticleBtn.addEventListener('click', () => {
+    selectingSide = 'right';
+    beamSideLabel.textContent = 'right';
+    particleModal.classList.add('show');
+  });
+  
+  closeModalBtn.addEventListener('click', () => {
+    particleModal.classList.remove('show');
+  });
+  
+  populateParticleGrid(normalParticlesContainer, standardModelParticles);
+  populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
+    name: 'Anti-' + p.name,
+    color: p.color.replace(/f/g, 'c') // Simple anti-matter color tweak
+  })));
+
+  
 });
 </script>
 </body>
