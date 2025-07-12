@@ -102,3 +102,76 @@ function animate() {
 }
 
 animate();
+
+const leftParticleBtn = document.getElementById('leftParticleBtn');
+const rightParticleBtn = document.getElementById('rightParticleBtn');
+const particleModal = document.getElementById('particleModal');
+const beamSideLabel = document.getElementById('beamSideLabel');
+const normalParticlesContainer = document.getElementById('normalParticles');
+const antiParticlesContainer = document.getElementById('antiParticles');
+const closeModalBtn = document.getElementById('closeParticleModal');
+
+let selectingSide = 'left';
+let currentBeamSide = 'left';
+let selectedParticles = {
+  left: 'electron',
+  right: 'positron'
+};
+
+
+const standardModelParticles = [
+  { name: 'Electron', color: '#00f' },
+  { name: 'Muon', color: '#0ff' },
+  { name: 'Tau', color: '#08f' },
+  { name: 'Up Quark', color: '#f00' },
+  { name: 'Down Quark', color: '#fa0' },
+  { name: 'Strange Quark', color: '#ff0' },
+  { name: 'Charm Quark', color: '#0f0' },
+  { name: 'Bottom Quark', color: '#0a0' },
+  { name: 'Top Quark', color: '#800' },
+  { name: 'Photon', color: '#fff' },
+  { name: 'Z Boson', color: '#ccc' },
+  { name: 'W Boson', color: '#999' }
+];
+
+function populateParticleGrid(grid, particles) {
+  grid.innerHTML = '';
+  particles.forEach(p => {
+    const btn = document.createElement('div');
+    btn.className = 'particle-button';
+    btn.textContent = p.name;
+    btn.style.backgroundColor = p.color;
+    btn.addEventListener('click', () => {
+      if (selectingSide === 'left') {
+        selectedLeftParticle = p;
+      } else {
+        selectedRightParticle = p;
+      }
+      particleModal.classList.remove('show');
+    });
+    grid.appendChild(btn);
+  });
+}
+
+leftParticleBtn.addEventListener('click', () => {
+  selectingSide = 'left';
+  beamSideLabel.textContent = 'left';
+  particleModal.classList.add('show');
+});
+
+rightParticleBtn.addEventListener('click', () => {
+  selectingSide = 'right';
+  beamSideLabel.textContent = 'right';
+  particleModal.classList.add('show');
+});
+
+closeParticleModal.addEventListener('click', () => {
+  particleModal.classList.remove('show');
+});
+
+populateParticleGrid(normalParticlesContainer, standardModelParticles);
+populateParticleGrid(antiParticlesGrid, standardModelParticles.map(p => ({
+  name: 'Anti-' + p.name,
+  color: p.color.replace('f', 'c') // simple color tweak
+})));
+
