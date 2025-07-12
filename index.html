@@ -52,7 +52,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: #222;
+      background: #000;
       border: 2px solid white;
       border-radius: 10px;
       padding: 20px;
@@ -78,7 +78,11 @@
       border: 1px solid white;
       border-radius: 5px;
       cursor: pointer;
-      background: #333;
+      background: #000;
+    }
+    
+    .particle-button:focus {
+      outline: 2px solid white;
     }
   
     .particle-button:hover {
@@ -404,15 +408,49 @@ window.addEventListener("DOMContentLoaded", () => {
   function populateParticleGrid(grid, particles) {
     grid.innerHTML = '';
     particles.forEach(p => {
-      const btn = document.createElement('div');
-      btn.className = 'particle-button';
-      btn.textContent = p.name;
-      btn.style.backgroundColor = p.color;
-      btn.addEventListener('click', () => {
-        selectedParticles[selectingSide] = p;
-        particleModal.classList.remove('show');
-      });
-      grid.appendChild(btn);
+     const btn = document.createElement('button');  // change div to button for semantics & accessibility
+    btn.className = 'particle-button';
+    btn.style.backgroundColor = '#000'; // black background for each button
+    
+    // Make button contents: a colored circle + particle name in white Arial text
+    
+    // Create circle element (a small colored div shaped as circle)
+    const circle = document.createElement('span');
+    circle.style.display = 'inline-block';
+    circle.style.width = '16px';
+    circle.style.height = '16px';
+    circle.style.borderRadius = '50%';
+    circle.style.backgroundColor = p.color;
+    circle.style.marginRight = '8px';
+    circle.style.verticalAlign = 'middle';
+    
+    // Create text element
+    const text = document.createElement('span');
+    text.textContent = p.name;
+    text.style.color = 'white';
+    text.style.fontFamily = 'Arial, sans-serif';
+    text.style.verticalAlign = 'middle';
+    
+    // Append circle and text to button
+    btn.appendChild(circle);
+    btn.appendChild(text);
+    
+    // Remove default outline but keep accessibility (visible on keyboard focus)
+    btn.style.outline = 'none';
+    btn.addEventListener('focus', () => {
+      btn.style.outline = '2px solid white';
+    });
+    btn.addEventListener('blur', () => {
+      btn.style.outline = 'none';
+    });
+    
+    btn.addEventListener('click', () => {
+      selectedParticles[selectingSide] = p;
+      particleModal.classList.remove('show');
+    });
+    
+    grid.appendChild(btn);
+
     });
   }
   
