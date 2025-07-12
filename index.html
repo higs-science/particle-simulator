@@ -48,15 +48,35 @@
     Time Scale:
     <input id="timeScaleInput" type="number" min="0.01" max="10" step="0.1" value="1" />
   </label>
-  
+
   <label for="particleCountInput">
     Particle Count:
     <input id="particleCountInput" type="range" min="1" max="100" step="1" value="10" />
     <span id="particleCountLabel">10</span>
   </label>
 
-  
+  <div id="particleControls">
+    <button id="leftParticleBtn">Left Particle</button>
+    <button id="rightParticleBtn">Right Particle</button>
+  </div>
 </div>
+
+<!-- Move this outside #controls -->
+<div id="particleModal" class="hidden">
+  <div id="particleModalContent">
+    <h2>Select Particle Type</h2>
+    <p>Choose a particle for the <span id="beamSideLabel">left</span> beam:</p>
+
+    <div class="grid-label">Standard Model</div>
+    <div class="particle-grid" id="normalParticles"></div>
+
+    <div class="grid-label">Antimatter Counterparts</div>
+    <div class="particle-grid" id="antiParticles"></div>
+
+    <button id="closeParticleModal">Close</button>
+  </div>
+</div>
+
 
 <canvas id="sim"></canvas>
 
