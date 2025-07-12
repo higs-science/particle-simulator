@@ -22,8 +22,40 @@ const PARTICLE_DECAYS = {
   ],
   "Pion-": [
     { products: ["Anti-Muon", "Anti-Neutrino"], probability: 1.0 }
-  ]
+  ],
+  // Added antimatter counterparts:
+  "Anti-Electron": [
+    { products: ["Photon", "Photon"], probability: 1.0 } // example decay channel for Anti-Electron (positron)
+  ],
+  "Anti-Muon": [
+    { products: ["Photon", "Neutrino"], probability: 1.0 } // example decay channel
+  ],
+  "Anti-Muon": [
+    { products: ["Photon", "Neutrino"], probability: 1.0 }
+  ],
+  "Anti-Neutrino": [
+    // Often considered stable, no decay
+  ],
+  "Anti-Proton": [
+    { products: ["Anti-Higgs"], probability: 0.01 }, // hypothetical antimatter equivalent
+    { products: ["Anti-Pion+", "Anti-Pion-"], probability: 0.1 },
+  ],
+  "Anti-Higgs": [
+    { products: ["Photon", "Photon"], probability: 1.0 } // antimatter Higgs behaves same as Higgs here
+  ],
+  "Anti-Pion+": [
+    { products: ["Anti-Muon", "Anti-Neutrino"], probability: 1.0 }
+  ],
+  "Anti-Pion-": [
+    { products: ["Muon", "Neutrino"], probability: 1.0 }
+  ],
+  // For neutrinos and photons assume stable:
+  "Photon": [],  
+  "Electron": [],  
+  "Muon": [],  
+  "Neutrino": [],
 };
+
 
 // Helper to pick decay channel randomly according to probabilities
 function pickDecayChannel(channels) {
