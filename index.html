@@ -216,7 +216,7 @@ window.addEventListener("DOMContentLoaded", () => {
         beam: "right",
         color: selectedParticles.right.color,
         name: selectedParticles.right.name || "Proton",
-        lifetime: 300,   // <-- Add lifetime here (frames or ticks)
+        lifetime: 1000,   // <-- Add lifetime here (frames or ticks)
         decayed: false
       });
   
@@ -277,6 +277,9 @@ window.addEventListener("DOMContentLoaded", () => {
         p.lifetime -= 1 * timeScale;
         if (p.lifetime < 0) p.lifetime = 0;
       }
+
+      console.log(`Particle ${p.name} lifetime: ${p.lifetime.toFixed(1)}, decayed: ${p.decayed}`);
+      
     }
   
     particles = particles.filter(p => p.x + p.r > 0 && p.x - p.r < canvas.width);
