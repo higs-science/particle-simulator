@@ -112,12 +112,11 @@ const antiParticlesContainer = document.getElementById('antiParticles');
 const closeModalBtn = document.getElementById('closeParticleModal');
 
 let selectingSide = 'left';
-let currentBeamSide = 'left';
-let selectedParticles = {
-  left: 'electron',
-  right: 'positron'
-};
 
+let selectedParticles = {
+  left: { name: 'Electron', color: '#00f' },
+  right: { name: 'Anti-Electron', color: '#0f0' }
+};
 
 const standardModelParticles = [
   { name: 'Electron', color: '#00f' },
@@ -142,11 +141,7 @@ function populateParticleGrid(grid, particles) {
     btn.textContent = p.name;
     btn.style.backgroundColor = p.color;
     btn.addEventListener('click', () => {
-      if (selectingSide === 'left') {
-        selectedLeftParticle = p;
-      } else {
-        selectedRightParticle = p;
-      }
+      selectedParticles[selectingSide] = p;
       particleModal.classList.remove('show');
     });
     grid.appendChild(btn);
@@ -165,13 +160,15 @@ rightParticleBtn.addEventListener('click', () => {
   particleModal.classList.add('show');
 });
 
-closeParticleModal.addEventListener('click', () => {
+closeModalBtn.addEventListener('click', () => {
   particleModal.classList.remove('show');
 });
 
 populateParticleGrid(normalParticlesContainer, standardModelParticles);
-populateParticleGrid(antiParticlesGrid, standardModelParticles.map(p => ({
+populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
   name: 'Anti-' + p.name,
-  color: p.color.replace('f', 'c') // simple color tweak
+  color: p.color.replace(/f/g, 'c') // simple tweak: 'f' → 'c' for anti colors
 })));
+
+
 
