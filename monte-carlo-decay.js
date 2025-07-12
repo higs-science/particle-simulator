@@ -1,6 +1,5 @@
 // monte-carlo-decay.js
 
-// Basic particle database with decay chains (simplified)
 const PARTICLE_DECAYS = {
   "Proton": [
     { products: ["Higgs"], probability: 0.01 },
@@ -26,35 +25,76 @@ const PARTICLE_DECAYS = {
   ]
 };
 
-window.decayParticle = function(particle) {
-  const decays = PARTICLE_DECAYS[particleName];
-  if (!decays) return null; // Stable particle or unknown
-
-  const rand = Math.random();
-  let sum = 0;
-  for (const decay of decays) {
-    sum += decay.probability;
-    if (rand <= sum) {
-      return decay.products;
+// Helper to pick decay channel randomly according to probabilities
+function pickDecayChannel(channels) {
+  const r = Math.random();
+  let cumulative = 0;
+  for (const channel of channels) {
+    cumulative += channel.probability;
+    if (r <= cumulative) {
+      return channel.products;
     }
   }
-  return null; // No decay selected (shouldn't happen)
+  return null; // No decay or stable
 }
 
-// Simulate decay chain
-export function simulateDecayChain(initialParticle) {
+window.decayParticle = function(particle) {
+  const decays = PARTICLE_DECAYS[particle.name];
+  if (!decays) {
+    // No decay info - stable particle
+    return null;
+  }
+
+  const products = pickDecayChannel(decays);
+  if (!products) {
+    // No decay this time
+    return null;
+  }
+
+  // Create new particle objects for each product
+  return products.map(productName => {
+    // Assign a color for new particles (simple hash or default)
+    const colorMap = {
+      "Higgs": "#f0f",
+      "Photon": "#fff",
+      "Z Boson": "#ccc",
+      "W Boson": "#999",
+      "Muon": "#0ff",
+      "Anti-Muon": "#0cc",
+      "Electron": "#00f",
+      "Neutrino": "#666",
+      "Anti-Neutrino": "#444",
+      "Pion+": "#f80",
+      "Pion-": "#f44"
+    };
+    return {
+      x: particle.x + (Math.random() - 0.5) * 20,
+      y: particle.y + (Math.random() - 0.5) * 20,
+      r: particle.r / 2,
+      vx: (Math.random() - 0.5) * 3,
+      vy: (Math.random() - 0.5) * 3,
+      beam: particle.beam,
+      color: colorMap[productName] || '#aaa',
+      decayed: false,
+      name: productName
+    };
+  });
+};
+
+// Optional: simulate entire decay chain, recursively decaying products until stable
+window.simulateDecayChain = function(initialParticle) {
   const queue = [initialParticle];
-  const result = [];
+  const stableParticles = [];
 
   while (queue.length > 0) {
     const particle = queue.shift();
-    const products = decayParticle(particle);
-    if (products) {
-      queue.push(...products);
+    const decayProducts = window.decayParticle(particle);
+    if (decayProducts && decayProducts.length > 0) {
+      queue.push(...decayProducts);
     } else {
-      result.push(particle); // Stable
+      stableParticles.push(particle);
     }
   }
 
-  return result; // All stable particles
-}
+  return stableParticles;
+};
