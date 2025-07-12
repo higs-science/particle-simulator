@@ -213,6 +213,7 @@ window.addEventListener("DOMContentLoaded", () => {
         vy: (Math.random() - 0.5) * 0.5,
         beam: "right",
         color: selectedParticles.right.color
+        name: selectedParticles.right.name
       });
       particles.push({
         x: canvas.width - Math.random() * 100,
@@ -222,6 +223,7 @@ window.addEventListener("DOMContentLoaded", () => {
         vy: (Math.random() - 0.5) * 0.5,
         beam: "left",
         color: selectedParticles.left.color
+        name: selectedParticles.left.name // for left beam
       });
     }
   }
