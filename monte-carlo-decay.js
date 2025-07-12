@@ -26,7 +26,7 @@ const PARTICLE_DECAYS = {
   ]
 };
 
-export function decayParticle(particleName) {
+window.decayParticle = function(particle) {
   const decays = PARTICLE_DECAYS[particleName];
   if (!decays) return null; // Stable particle or unknown
 
