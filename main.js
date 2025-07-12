@@ -151,18 +151,22 @@ function populateParticleGrid(grid, particles) {
 leftParticleBtn.addEventListener('click', () => {
   selectingSide = 'left';
   beamSideLabel.textContent = 'left';
+  particleModal.classList.remove('hidden');
   particleModal.classList.add('show');
 });
 
 rightParticleBtn.addEventListener('click', () => {
   selectingSide = 'right';
   beamSideLabel.textContent = 'right';
+  particleModal.classList.remove('hidden');
   particleModal.classList.add('show');
 });
 
 closeModalBtn.addEventListener('click', () => {
   particleModal.classList.remove('show');
+  particleModal.classList.add('hidden');
 });
+
 
 populateParticleGrid(normalParticlesContainer, standardModelParticles);
 populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
