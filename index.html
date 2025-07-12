@@ -270,37 +270,63 @@ window.addEventListener("DOMContentLoaded", () => {
     detectCollisions();
   }
 
-  function detectCollisions() {
-    const collisionChance = 1e-2; // Adjust this to match desired frequency
-
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const a = particles[i];
-        const b = particles[j];
-
-        // Only check opposite-direction beams
-        if (a.beam === b.beam) continue;
-
-        const dx = a.x - b.x;
-        const dy = a.y - b.y;
-        const distSq = dx * dx + dy * dy;
-        const radiusSum = a.r + b.r;
-
-        
-
-        if (distSq < radiusSum * radiusSum) {
-          if (Math.random() < collisionChance) {
-            collisions.push({
-              x: (a.x + b.x) / 2,
-              y: (a.y + b.y) / 2,
-              r: (a.r + b.r) / 2, // average radius of the two colliding particles
-              time: Date.now()
-            });
+    function detectCollisions() {
+      const collisionChance = 1e-2; // Adjust this to match desired frequency
+    
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const a = particles[i];
+          const b = particles[j];
+    
+          // Only check opposite-direction beams
+          if (a.beam === b.beam) continue;
+    
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const distSq = dx * dx + dy * dy;
+          const radiusSum = a.r + b.r;
+    
+          if (distSq < radiusSum * radiusSum) {
+            if (Math.random() < collisionChance) {
+              collisions.push({
+                x: (a.x + b.x) / 2,
+                y: (a.y + b.y) / 2,
+                r: (a.r + b.r) / 2, // average radius of the two colliding particles
+                time: Date.now()
+              });
+    
+              // TODO: call decay functions here
+              // const decayProductsA = decayParticle(a);
+              // const decayProductsB = decayParticle(b);
+              // particles.push(...decayProductsA, ...decayProductsB);
+              // a.decayed = true;
+              // b.decayed = true;
+              if (distSq < radiusSum * radiusSum) {
+                if (Math.random() < collisionChance) {
+                  collisions.push({
+                    x: (a.x + b.x) / 2,
+                    y: (a.y + b.y) / 2,
+                    r: (a.r + b.r) / 2,
+                    time: Date.now()
+                  });
+              
+                  if (!a.decayed) {
+                    const decayProductsA = window.decayParticle(a);
+                    particles.push(...decayProductsA);
+                    a.decayed = true;
+                  }
+                  if (!b.decayed) {
+                    const decayProductsB = window.decayParticle(b);
+                    particles.push(...decayProductsB);
+                    b.decayed = true;
+                  }
+                }
+              }
+            }
           }
         }
       }
     }
-  }
 
   function loop() {
     if (!running) return;
@@ -483,5 +509,6 @@ window.addEventListener("DOMContentLoaded", () => {
   
 });
 </script>
+<script src="monte-carlo-decay.js"></script>
 </body>
 </html>
