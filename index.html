@@ -202,7 +202,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (zoomLevel > 100) zoomLevel = 100;
   });
 
-   function createParticles() {
+  function createParticles() {
     const baseRadius = 6;
     const scaledRadius = baseRadius * (10 / batchSize); // Fewer particles = bigger radius
   
@@ -215,9 +215,11 @@ window.addEventListener("DOMContentLoaded", () => {
         vy: (Math.random() - 0.5) * 0.5,
         beam: "right",
         color: selectedParticles.right.color,
-        name: selectedParticles.right.name || "Proton"  // ← ADD THIS LINE
+        name: selectedParticles.right.name || "Proton",
+        lifetime: 300,   // <-- Add lifetime here (frames or ticks)
+        decayed: false
       });
-    
+  
       particles.push({
         x: canvas.width - Math.random() * 100,
         y: bandTop() + Math.random() * (bandBottom() - bandTop()),
@@ -226,12 +228,13 @@ window.addEventListener("DOMContentLoaded", () => {
         vy: (Math.random() - 0.5) * 0.5,
         beam: "left",
         color: selectedParticles.left.color,
-        name: selectedParticles.left.name || "Proton"  // ← ADD THIS LINE
+        name: selectedParticles.left.name || "Proton",
+        lifetime: 300,  // <-- Add lifetime here
+        decayed: false
       });
     }
   }
-
-
+  
   function drawParticles() {
     for (let p of particles) {
       ctx.fillStyle = p.color;
@@ -239,7 +242,7 @@ window.addEventListener("DOMContentLoaded", () => {
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fill();
     }
-
+  
     // Draw collision flashes
     const now = Date.now();
     for (let i = collisions.length - 1; i >= 0; i--) {
@@ -256,11 +259,11 @@ window.addEventListener("DOMContentLoaded", () => {
       ctx.arc(c.x, c.y, c.r * 2 * alpha, 0, Math.PI * 2);
       ctx.fill();
     }
-
+  
     // Fade collisions after short time
     collisions = collisions.filter(c => Date.now() - c.time < 200);
   }
-
+  
   function updateParticles() {
     for (let p of particles) {
       p.x += p.vx * timeScale;
@@ -268,60 +271,68 @@ window.addEventListener("DOMContentLoaded", () => {
       if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
         p.vy *= -1;
       }
+  
+      // Reduce lifetime by timeScale amount each update
+      if (p.lifetime !== undefined && p.lifetime > 0) {
+        p.lifetime -= 1 * timeScale;
+        if (p.lifetime < 0) p.lifetime = 0;
+      }
     }
-
+  
     particles = particles.filter(p => p.x + p.r > 0 && p.x - p.r < canvas.width);
-
+  
     detectCollisions();
   }
-
-    function detectCollisions() {
-      const collisionChance = 1e-2; // Adjust this to match desired frequency
-    
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const a = particles[i];
-          const b = particles[j];
-    
-          // Only check opposite-direction beams
-          if (a.beam === b.beam) continue;
-    
-          const dx = a.x - b.x;
-          const dy = a.y - b.y;
-          const distSq = dx * dx + dy * dy;
-          const radiusSum = a.r + b.r;
-    
-          if (distSq < radiusSum * radiusSum) {
-            if (Math.random() < collisionChance) {
-              collisions.push({
-                x: (a.x + b.x) / 2,
-                y: (a.y + b.y) / 2,
-                r: (a.r + b.r) / 2,
-                time: Date.now()
-              });
-    
-              if (!a.decayed) {
-                const decayProductsA = window.decayParticle(a);
-                console.log('Decay products A:', decayProductsA);
-                if (decayProductsA) {
-                  particles.push(...decayProductsA);
-                }
-                a.decayed = true;
+  
+  function detectCollisions() {
+    const collisionChance = 1e-2; // Adjust this to match desired frequency
+  
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i];
+        const b = particles[j];
+  
+        // Only check opposite-direction beams
+        if (a.beam === b.beam) continue;
+  
+        const dx = a.x - b.x;
+        const dy = a.y - b.y;
+        const distSq = dx * dx + dy * dy;
+        const radiusSum = a.r + b.r;
+  
+        if (distSq < radiusSum * radiusSum) {
+          if (Math.random() < collisionChance) {
+            collisions.push({
+              x: (a.x + b.x) / 2,
+              y: (a.y + b.y) / 2,
+              r: (a.r + b.r) / 2,
+              time: Date.now()
+            });
+  
+            // Decay only if lifetime expired and not already decayed
+            if (!a.decayed && a.lifetime <= 0) {
+              const decayProductsA = window.decayParticle(a);
+              console.log('Decay products A:', decayProductsA);
+              if (decayProductsA) {
+                particles.push(...decayProductsA);
               }
-    
-              if (!b.decayed) {
-                const decayProductsB = window.decayParticle(b);
-                console.log('Decay products B:', decayProductsB);
-                if (decayProductsB) {
-                  particles.push(...decayProductsB);
-                }
-                b.decayed = true;
+              a.decayed = true;
+            }
+  
+            if (!b.decayed && b.lifetime <= 0) {
+              const decayProductsB = window.decayParticle(b);
+              console.log('Decay products B:', decayProductsB);
+              if (decayProductsB) {
+                particles.push(...decayProductsB);
               }
+              b.decayed = true;
             }
           }
         }
       }
     }
+  }
+
     
 
 
