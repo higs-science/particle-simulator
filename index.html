@@ -174,8 +174,10 @@ window.addEventListener("DOMContentLoaded", () => {
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas);
 
-  let particles = [];
-  let collisions = [];
+  window.particles = [];
+  let particles = window.particles;
+  window.collisions = [];
+  let collisions = window.collisions;
   let animationId = null;
   let running = false;
 
