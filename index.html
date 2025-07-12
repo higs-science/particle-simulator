@@ -203,7 +203,7 @@ window.addEventListener("DOMContentLoaded", () => {
         r: scaledRadius,
         vx: 5 + Math.random() * 2,
         vy: (Math.random() - 0.5) * 0.5,
-        beam: "right"
+        beam: "right",
         color: selectedParticles.right.color
       });
       particles.push({
@@ -212,7 +212,7 @@ window.addEventListener("DOMContentLoaded", () => {
         r: scaledRadius,
         vx: -5 - Math.random() * 2,
         vy: (Math.random() - 0.5) * 0.5,
-        beam: "left"
+        beam: "left",
         color: selectedParticles.left.color
       });
     }
@@ -220,8 +220,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
   function drawParticles() {
-    ctx.fillStyle = p.color;
     for (let p of particles) {
+      ctx.fillStyle = p.color;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fill();
