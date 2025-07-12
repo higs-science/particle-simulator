@@ -297,6 +297,7 @@ window.addEventListener("DOMContentLoaded", () => {
     
               if (!a.decayed) {
                 const decayProductsA = window.decayParticle(a);
+                console.log('Decay products A:', decayProductsA);
                 if (decayProductsA) {
                   particles.push(...decayProductsA);
                 }
@@ -305,6 +306,7 @@ window.addEventListener("DOMContentLoaded", () => {
     
               if (!b.decayed) {
                 const decayProductsB = window.decayParticle(b);
+                console.log('Decay products B:', decayProductsB);
                 if (decayProductsB) {
                   particles.push(...decayProductsB);
                 }
