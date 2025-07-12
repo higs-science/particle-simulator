@@ -165,7 +165,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const alpha = 1 - elapsed / duration;
       ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
       ctx.beginPath();
-      ctx.arc(c.x, c.y, c.r * 5 * alpha, 0, Math.PI * 2);
+      ctx.arc(c.x, c.y, c.r * 2 * alpha, 0, Math.PI * 2);
       ctx.fill();
     }
 
