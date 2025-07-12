@@ -311,15 +311,29 @@ window.addEventListener("DOMContentLoaded", () => {
                   });
               
                   if (!a.decayed) {
-                    const decayProductsA = window.decayParticle(a);
+
+                  const decayProductsA = window.decayParticle(a);
+                  if (decayProductsA) {
                     particles.push(...decayProductsA);
+                  }
                     a.decayed = true;
                   }
                   if (!b.decayed) {
-                    const decayProductsB = window.decayParticle(b);
-                    particles.push(...decayProductsB);
-                    b.decayed = true;
-                  }
+
+                    if (!a.decayed) {
+                      const decayProductsA = window.decayParticle(a);
+                      if (decayProductsA) {
+                        particles.push(...decayProductsA);
+                      }
+                      a.decayed = true;
+                    }
+                    if (!b.decayed) {
+                      const decayProductsB = window.decayParticle(b);
+                      if (decayProductsB) {
+                        particles.push(...decayProductsB);
+                      }
+                      b.decayed = true;
+                    }
                 }
               }
             }
