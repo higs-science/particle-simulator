@@ -216,7 +216,7 @@ window.addEventListener("DOMContentLoaded", () => {
         beam: "right",
         color: selectedParticles.right.color,
         name: selectedParticles.right.name || "Proton",
-        lifetime: 1000,   // <-- Add lifetime here (frames or ticks)
+        lifetime: 1000,   // lifetime in ticks or frames
         decayed: false
       });
   
@@ -229,7 +229,7 @@ window.addEventListener("DOMContentLoaded", () => {
         beam: "left",
         color: selectedParticles.left.color,
         name: selectedParticles.left.name || "Proton",
-        lifetime: 300,  // <-- Add lifetime here
+        lifetime: 1000,   // lifetime in ticks or frames
         decayed: false
       });
     }
@@ -248,7 +248,7 @@ window.addEventListener("DOMContentLoaded", () => {
     for (let i = collisions.length - 1; i >= 0; i--) {
       const c = collisions[i];
       const elapsed = now - c.time;
-      const duration = 300 / timeScale;  // ✅ correct
+      const duration = 300 / timeScale;
       if (elapsed > duration) {
         collisions.splice(i, 1);
         continue;
@@ -260,7 +260,6 @@ window.addEventListener("DOMContentLoaded", () => {
       ctx.fill();
     }
   
-    // Fade collisions after short time
     collisions = collisions.filter(c => Date.now() - c.time < 200);
   }
   
@@ -272,14 +271,13 @@ window.addEventListener("DOMContentLoaded", () => {
         p.vy *= -1;
       }
   
-      // Reduce lifetime by timeScale amount each update
+      // Reduce lifetime by timeScale each update
       if (p.lifetime !== undefined && p.lifetime > 0) {
         p.lifetime -= 1 * timeScale;
         if (p.lifetime < 0) p.lifetime = 0;
       }
-
+  
       console.log(`Particle ${p.name} lifetime: ${p.lifetime.toFixed(1)}, decayed: ${p.decayed}`);
-      
     }
   
     particles = particles.filter(p => p.x + p.r > 0 && p.x - p.r < canvas.width);
@@ -288,14 +286,13 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   
   function detectCollisions() {
-    const collisionChance = 1e-2; // Adjust this to match desired frequency
+    const collisionChance = 1e-2;
   
     for (let i = 0; i < particles.length; i++) {
       for (let j = i + 1; j < particles.length; j++) {
         const a = particles[i];
         const b = particles[j];
   
-        // Only check opposite-direction beams
         if (a.beam === b.beam) continue;
   
         const dx = a.x - b.x;
@@ -335,9 +332,6 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     }
   }
-
-    
-
 
 
   function loop() {
