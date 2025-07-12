@@ -213,8 +213,9 @@ window.addEventListener("DOMContentLoaded", () => {
         vy: (Math.random() - 0.5) * 0.5,
         beam: "right",
         color: selectedParticles.right.color,
-        name: selectedParticles.right.name
+        name: selectedParticles.right.name || "Proton"  // ← ADD THIS LINE
       });
+    
       particles.push({
         x: canvas.width - Math.random() * 100,
         y: bandTop() + Math.random() * (bandBottom() - bandTop()),
@@ -223,7 +224,7 @@ window.addEventListener("DOMContentLoaded", () => {
         vy: (Math.random() - 0.5) * 0.5,
         beam: "left",
         color: selectedParticles.left.color,
-        name: selectedParticles.left.name // for left beam
+        name: selectedParticles.left.name || "Proton"  // ← ADD THIS LINE
       });
     }
   }
