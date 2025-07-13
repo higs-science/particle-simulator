@@ -279,18 +279,10 @@ window.addEventListener("DOMContentLoaded", () => {
       }
       if (p.lifetime < 50 && !p.decayed) {
         console.warn(`🔥 Decay triggered for ${p.name} with lifetime = ${p.lifetime}`);
-        particles.push({
-        x: p.x,
-        y: p.y,
-        vx: 0,
-        vy: 0,
-        r: 3,
-        beam: p.beam,
-        color: "#ff00ff",
-        name: "DecayProduct",
-        lifetime: 100,
-        decayed: false
-        });
+        const decayProducts = window.decayParticle(p);
+        if (decayProducts && decayProducts.length > 0) {
+          particles.push(...decayProducts);
+        }
         p.decayed = true;
       }
       console.log(`Particle ${p.name} lifetime: ${p.lifetime.toFixed(1)}, decayed: ${p.decayed}`);
