@@ -1,5 +1,5 @@
 // monte-carlo-decay.js
-
+console.log("decayParticle called on:", particle);
 const PARTICLE_DECAYS = {
   "Proton": [
     { products: ["Higgs"], probability: 0.01 },
