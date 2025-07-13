@@ -273,7 +273,7 @@ window.addEventListener("DOMContentLoaded", () => {
   
       // Reduce lifetime by timeScale each update
       if (p.lifetime !== undefined && p.lifetime > 0) {
-        p.lifetime -= 1 * timeScale;
+        p.lifetime -= timeScale;
         if (p.lifetime < 0) p.lifetime = 0;
       }
     if (p.lifetime <= 0 && !p.decayed) {
@@ -285,6 +285,9 @@ window.addEventListener("DOMContentLoaded", () => {
       p.decayed = true;
     }
       console.log(`Particle ${p.name} lifetime: ${p.lifetime.toFixed(1)}, decayed: ${p.decayed}`);
+      if (p.lifetime <= 0 && !p.decayed) {
+      console.log(`⚠️ ${p.name} should decay now`);
+    }
     }
   
     particles = particles.filter(p => p.x + p.r > 0 && p.x - p.r < canvas.width);
