@@ -270,7 +270,7 @@ window.addEventListener("DOMContentLoaded", () => {
       if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
         p.vy *= -1;
       }
-  
+      console.log("timeScale =", timeScale);
       // Reduce lifetime by timeScale each update
       if (p.lifetime !== undefined && p.lifetime > 0) {
         p.lifetime -= timeScale;
