@@ -71,6 +71,7 @@ function pickDecayChannel(channels) {
 }
 
 window.decayParticle = function(particle) {
+  console.log("decayParticle called on:", particle);
   const decays = PARTICLE_DECAYS[particle.name];
   if (!decays) {
     // No decay info - stable particle
