@@ -229,7 +229,7 @@ window.addEventListener("DOMContentLoaded", () => {
         beam: "left",
         color: selectedParticles.left.color,
         name: selectedParticles.left.name || "Proton",
-        lifetime: 1000,   // lifetime in ticks or frames
+        lifetime: 50,   // lifetime in ticks or frames
         decayed: false
       });
     }
@@ -290,8 +290,9 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     }
   
-    particles = particles.filter(p => p.x + p.r > 0 && p.x - p.r < canvas.width);
-  
+    particles = particles.filter(p => 
+      (p.x + p.r > 0 && p.x - p.r < canvas.width) || !p.decayed
+    );  
     detectCollisions();
   }
   
