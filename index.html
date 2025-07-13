@@ -264,6 +264,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   
   function updateParticles() {
+    if (Math.abs(p.vx) < 0.1) p.vx = (Math.random() - 0.5) * 2;
     for (let p of particles) {
       p.x += p.vx * timeScale;
       p.y += p.vy * timeScale;
@@ -298,8 +299,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     }
   
-    particles = particles.filter(p => 
-      (p.x + p.r > 0 && p.x - p.r < canvas.width) || !p.decayed
+    particles = particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
     );  
     detectCollisions();
   }
