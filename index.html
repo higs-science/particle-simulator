@@ -307,7 +307,7 @@ window.addEventListener("DOMContentLoaded", () => {
   
     particles = particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
     detectCollisions();
-  }
+  });
   
   function detectCollisions() {
     const collisionChance = 1e-2;
