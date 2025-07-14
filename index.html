@@ -265,7 +265,6 @@ window.addEventListener("DOMContentLoaded", () => {
   
   function updateParticles() {
     for (let p of particles) {
-      // 💡 Place it here, where p is defined
       if (Math.abs(p.vx) < 0.1) {
         p.vx = (Math.random() - 0.5) * 2;
       }
@@ -279,7 +278,6 @@ window.addEventListener("DOMContentLoaded", () => {
   
       console.log("timeScale =", timeScale);
   
-      // Reduce lifetime by timeScale each update
       if (p.lifetime !== undefined && p.lifetime > 0) {
         p.lifetime -= timeScale;
         if (p.lifetime < 0) p.lifetime = 0;
@@ -304,10 +302,6 @@ window.addEventListener("DOMContentLoaded", () => {
     detectCollisions();
   }
 
-  
-    particles = particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
-    detectCollisions();
-  });
   
   function detectCollisions() {
     const collisionChance = 1e-2;
