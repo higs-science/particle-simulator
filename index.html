@@ -281,7 +281,7 @@
           if (p.lifetime < 0) p.lifetime = 0;
         }
 
-        if (p.lifetime < 50 && !p.decayed) {
+        if (p.lifetime <= 0 && !p.decayed) {
           console.warn(`🔥 Decay triggered for ${p.name} with lifetime = ${p.lifetime}`);
           const decayProducts = window.decayParticle(p);
           if (decayProducts && decayProducts.length > 0) {
