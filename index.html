@@ -264,19 +264,27 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   
   function updateParticles() {
-    if (Math.abs(p.vx) < 0.1) p.vx = (Math.random() - 0.5) * 2;
     for (let p of particles) {
-        p.x += p.vx * timeScale;
-        p.y += p.vy * timeScale;
-        if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
-          p.vy *= -1;
-        }
+      // 💡 Place it here, where p is defined
+      if (Math.abs(p.vx) < 0.1) {
+        p.vx = (Math.random() - 0.5) * 2;
+      }
+  
+      p.x += p.vx * timeScale;
+      p.y += p.vy * timeScale;
+  
+      if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
+        p.vy *= -1;
+      }
+  
       console.log("timeScale =", timeScale);
+  
       // Reduce lifetime by timeScale each update
       if (p.lifetime !== undefined && p.lifetime > 0) {
         p.lifetime -= timeScale;
         if (p.lifetime < 0) p.lifetime = 0;
       }
+  
       if (p.lifetime < 50 && !p.decayed) {
         console.warn(`🔥 Decay triggered for ${p.name} with lifetime = ${p.lifetime}`);
         const decayProducts = window.decayParticle(p);
@@ -285,11 +293,17 @@ window.addEventListener("DOMContentLoaded", () => {
         }
         p.decayed = true;
       }
-      console.log(`Particle ${p.name} lifetime: ${p.lifetime.toFixed(1)}, decayed: ${p.decayed}`);
+  
+      console.log(`Particle ${p.name} lifetime: ${p.lifetime?.toFixed(1)}, decayed: ${p.decayed}`);
       if (p.lifetime <= 50 && !p.decayed) {
-      console.log(`⚠️ ${p.name} should decay now`);
+        console.log(`⚠️ ${p.name} should decay now`);
+      }
     }
-    }
+  
+    particles = particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
+    detectCollisions();
+  }
+
   
     particles = particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
     detectCollisions();
