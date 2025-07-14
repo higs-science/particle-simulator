@@ -92,444 +92,430 @@
     .particle-button:hover {
       background: #555;
     }
-</style>
+  </style>
 </head>
 <body>
-<div id="controls">
-  <button id="startBtn">Start</button>
-  <button id="stopBtn">Stop</button>
-  <button id="resetBtn">Reset</button>
+  <div id="controls">
+    <button id="startBtn">Start</button>
+    <button id="stopBtn">Stop</button>
+    <button id="resetBtn">Reset</button>
 
-  <label for="zoomSlider">
-    Zoom:
-    <input id="zoomSlider" type="range" min="1" max="100" step="1" value="100" />
-    <span id="zoomLabel">100%</span>
-  </label>
+    <label for="zoomSlider">
+      Zoom:
+      <input id="zoomSlider" type="range" min="1" max="100" step="1" value="100" />
+      <span id="zoomLabel">100%</span>
+    </label>
 
-  <label for="timeScaleInput">
-    Time Scale:
-    <input id="timeScaleInput" type="number" min="0.01" max="10" step="0.1" value="1" />
-  </label>
+    <label for="timeScaleInput">
+      Time Scale:
+      <input id="timeScaleInput" type="number" min="0.01" max="10" step="0.1" value="1" />
+    </label>
 
-  <label for="particleCountInput">
-    Particle Count:
-    <input id="particleCountInput" type="range" min="1" max="100" step="1" value="10" />
-    <span id="particleCountLabel">10</span>
-  </label>
+    <label for="particleCountInput">
+      Particle Count:
+      <input id="particleCountInput" type="range" min="1" max="100" step="1" value="10" />
+      <span id="particleCountLabel">10</span>
+    </label>
 
-  <div id="particleControls">
-    <button id="leftParticleBtn">Left Particle</button>
-    <button id="rightParticleBtn">Right Particle</button>
+    <div id="particleControls">
+      <button id="leftParticleBtn">Left Particle</button>
+      <button id="rightParticleBtn">Right Particle</button>
+    </div>
   </div>
-</div>
 
-<!-- Move this outside #controls -->
-<div id="particleModal">
-  <div id="particleModalContent">
-    <h2>Select Particle Type</h2>
-    <p>Choose a particle for the <span id="beamSideLabel">left</span> beam:</p>
+  <div id="particleModal">
+    <div id="particleModalContent">
+      <h2>Select Particle Type</h2>
+      <p>Choose a particle for the <span id="beamSideLabel">left</span> beam:</p>
 
-    <div class="grid-label">Standard Model</div>
-    <div class="particle-grid" id="normalParticles"></div>
+      <div class="grid-label">Standard Model</div>
+      <div class="particle-grid" id="normalParticles"></div>
 
-    <div class="grid-label">Antimatter Counterparts</div>
-    <div class="particle-grid" id="antiParticles"></div>
+      <div class="grid-label">Antimatter Counterparts</div>
+      <div class="particle-grid" id="antiParticles"></div>
 
-    <button id="closeParticleModal">Close</button>
+      <button id="closeParticleModal">Close</button>
+    </div>
   </div>
-</div>
 
+  <canvas id="sim"></canvas>
 
-<canvas id="sim"></canvas>
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-  const canvas = document.getElementById("sim");
-  const ctx = canvas.getContext("2d");
-  const startBtn = document.getElementById("startBtn");
-  const stopBtn = document.getElementById("stopBtn");
-  const resetBtn = document.getElementById("resetBtn");
-  const zoomSlider = document.getElementById("zoomSlider");
-  const zoomLabel = document.querySelector("#controls span#zoomLabel");
-  const timeScaleInput = document.getElementById("timeScaleInput");
-  let timeScale = 1;
-  
-  const particleCountInput = document.getElementById("particleCountInput");
-  const particleCountLabel = document.getElementById("particleCountLabel");
-  let batchSize = parseInt(particleCountInput.value);
-  
-  particleCountInput.addEventListener("input", () => {
-    batchSize = parseInt(particleCountInput.value);
-    particleCountLabel.textContent = batchSize;
-  });
+  <script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("sim");
+    const ctx = canvas.getContext("2d");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const zoomSlider = document.getElementById("zoomSlider");
+    const zoomLabel = document.querySelector("#controls span#zoomLabel");
+    const timeScaleInput = document.getElementById("timeScaleInput");
+    const particleCountInput = document.getElementById("particleCountInput");
+    const particleCountLabel = document.getElementById("particleCountLabel");
 
-  
-  timeScaleInput.addEventListener("input", () => {
-    timeScale = parseFloat(timeScaleInput.value) || 1;
-  });
+    let timeScale = 1;
+    let batchSize = parseInt(particleCountInput.value);
 
-  function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
+    particleCountInput.addEventListener("input", () => {
+      batchSize = parseInt(particleCountInput.value);
+      particleCountLabel.textContent = batchSize;
+    });
 
-  window.particles = [];
-  let particles = window.particles;
-  window.collisions = [];
-  let collisions = window.collisions;
-  let animationId = null;
-  let running = false;
+    timeScaleInput.addEventListener("input", () => {
+      timeScale = parseFloat(timeScaleInput.value) || 1;
+    });
 
-  const bandTop = () => canvas.height * 0.25;
-  const bandBottom = () => canvas.height * 0.75;
-  const spawnInterval = 500;
-  let spawnTimer = null;
-
-  // Zoom variables
-  let zoomLevel = 1; // scale factor (1 = normal)
-  let zoomCenter = { x: canvas.width / 2, y: canvas.height / 2 };
-
-  // Initialize zoom slider and label
-  zoomLabel.textContent = zoomSlider.value + "%";
-
-  zoomSlider.addEventListener("input", () => {
-    const val = parseInt(zoomSlider.value);
-    zoomLabel.textContent = val + "%";
-    // Map slider 1..100 to zoomLevel 100..1 (inverted)
-    zoomLevel = 101 - val;
-    if (zoomLevel < 1) zoomLevel = 1;
-    if (zoomLevel > 100) zoomLevel = 100;
-  });
-
-  function createParticles() {
-    const baseRadius = 6;
-    const scaledRadius = baseRadius * (10 / batchSize); // Fewer particles = bigger radius
-  
-    for (let i = 0; i < batchSize; i++) {
-      particles.push({
-        x: Math.random() * 100,
-        y: bandTop() + Math.random() * (bandBottom() - bandTop()),
-        r: scaledRadius,
-        vx: 5 + Math.random() * 2,
-        vy: (Math.random() - 0.5) * 0.5,
-        beam: "right",
-        color: selectedParticles.right.color,
-        name: selectedParticles.right.name || "Proton",
-        lifetime: 1000,   // lifetime in ticks or frames
-        decayed: false
-      });
-  
-      particles.push({
-        x: canvas.width - Math.random() * 100,
-        y: bandTop() + Math.random() * (bandBottom() - bandTop()),
-        r: scaledRadius,
-        vx: -5 - Math.random() * 2,
-        vy: (Math.random() - 0.5) * 0.5,
-        beam: "left",
-        color: selectedParticles.left.color,
-        name: selectedParticles.left.name || "Proton",
-        lifetime: 50,   // lifetime in ticks or frames
-        decayed: false
-      });
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     }
-  }
-  
-  function drawParticles() {
-    for (let p of particles) {
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    window.particles = [];
+    let particles = window.particles;
+    window.collisions = [];
+    let collisions = window.collisions;
+    let animationId = null;
+    let running = false;
+
+    const bandTop = () => canvas.height * 0.25;
+    const bandBottom = () => canvas.height * 0.75;
+    const spawnInterval = 500;
+    let spawnTimer = null;
+
+    // Zoom variables
+    let zoomLevel = 1; // scale factor (1 = normal)
+    let zoomCenter = { x: canvas.width / 2, y: canvas.height / 2 };
+
+    // Initialize zoom slider and label
+    zoomLabel.textContent = zoomSlider.value + "%";
+
+    zoomSlider.addEventListener("input", () => {
+      const val = parseInt(zoomSlider.value);
+      zoomLabel.textContent = val + "%";
+      // Map slider 1..100 to zoomLevel 100..1 (inverted)
+      zoomLevel = 101 - val;
+      if (zoomLevel < 1) zoomLevel = 1;
+      if (zoomLevel > 100) zoomLevel = 100;
+    });
+
+    function createParticles() {
+      const baseRadius = 6;
+      const scaledRadius = baseRadius * (10 / batchSize); // Fewer particles = bigger radius
+
+      for (let i = 0; i < batchSize; i++) {
+        particles.push({
+          x: Math.random() * 100,
+          y: bandTop() + Math.random() * (bandBottom() - bandTop()),
+          r: scaledRadius,
+          vx: 5 + Math.random() * 2,
+          vy: (Math.random() - 0.5) * 0.5,
+          beam: "right",
+          color: selectedParticles.right.color,
+          name: selectedParticles.right.name || "Proton",
+          lifetime: 1000,
+          decayed: false
+        });
+
+        particles.push({
+          x: canvas.width - Math.random() * 100,
+          y: bandTop() + Math.random() * (bandBottom() - bandTop()),
+          r: scaledRadius,
+          vx: -5 - Math.random() * 2,
+          vy: (Math.random() - 0.5) * 0.5,
+          beam: "left",
+          color: selectedParticles.left.color,
+          name: selectedParticles.left.name || "Proton",
+          lifetime: 50,
+          decayed: false
+        });
+      }
     }
-  
-    // Draw collision flashes
-    const now = Date.now();
-    for (let i = collisions.length - 1; i >= 0; i--) {
-      const c = collisions[i];
-      const elapsed = now - c.time;
-      const duration = 300 / timeScale;
-      if (elapsed > duration) {
-        collisions.splice(i, 1);
-        continue;
+
+    function drawParticles() {
+      for (let p of particles) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
       }
-      const alpha = 1 - elapsed / duration;
-      ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
-      ctx.beginPath();
-      ctx.arc(c.x, c.y, c.r * 2 * alpha, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  
-    collisions = collisions.filter(c => Date.now() - c.time < 200);
-  }
-  
-  function updateParticles() {
-    for (let p of particles) {
-      if (Math.abs(p.vx) < 0.1) {
-        p.vx = (Math.random() - 0.5) * 2;
-      }
-  
-      p.x += p.vx * timeScale;
-      p.y += p.vy * timeScale;
-  
-      if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
-        p.vy *= -1;
-      }
-  
-      console.log("timeScale =", timeScale);
-  
-      if (p.lifetime !== undefined && p.lifetime > 0) {
-        p.lifetime -= timeScale;
-        if (p.lifetime < 0) p.lifetime = 0;
-      }
-  
-      if (p.lifetime < 50 && !p.decayed) {
-        console.warn(`🔥 Decay triggered for ${p.name} with lifetime = ${p.lifetime}`);
-        const decayProducts = window.decayParticle(p);
-        if (decayProducts && decayProducts.length > 0) {
-          particles.push(...decayProducts);
+
+      // Draw collision flashes
+      const now = Date.now();
+      for (let i = collisions.length - 1; i >= 0; i--) {
+        const c = collisions[i];
+        const elapsed = now - c.time;
+        const duration = 300 / timeScale;
+        if (elapsed > duration) {
+          collisions.splice(i, 1);
+          continue;
         }
-        p.decayed = true;
+        const alpha = 1 - elapsed / duration;
+        ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r * 2 * alpha, 0, Math.PI * 2);
+        ctx.fill();
       }
-  
-      console.log(`Particle ${p.name} lifetime: ${p.lifetime?.toFixed(1)}, decayed: ${p.decayed}`);
-      if (p.lifetime <= 50 && !p.decayed) {
-        console.log(`⚠️ ${p.name} should decay now`);
-      }
-    }
-  
-    particles = particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
-    detectCollisions();
-  }
 
-  
-  function detectCollisions() {
-    const collisionChance = 1e-2;
-  
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const a = particles[i];
-        const b = particles[j];
-  
-        if (a.beam === b.beam) continue;
-  
-        const dx = a.x - b.x;
-        const dy = a.y - b.y;
-        const distSq = dx * dx + dy * dy;
-        const radiusSum = a.r + b.r;
-  
-        if (distSq < radiusSum * radiusSum) {
-          if (Math.random() < collisionChance) {
-            collisions.push({
-              x: (a.x + b.x) / 2,
-              y: (a.y + b.y) / 2,
-              r: (a.r + b.r) / 2,
-              time: Date.now()
-            });
-  
-            // Decay only if lifetime expired and not already decayed
-            if (!a.decayed && a.lifetime <= 0) {
-              const decayProductsA = window.decayParticle(a);
-              console.log('Decay products A:', decayProductsA);
-              if (decayProductsA) {
-                particles.push(...decayProductsA);
+      collisions = collisions.filter(c => Date.now() - c.time < 200);
+    }
+
+    function updateParticles() {
+      for (let p of particles) {
+        if (Math.abs(p.vx) < 0.1) {
+          p.vx = (Math.random() - 0.5) * 2;
+        }
+
+        p.x += p.vx * timeScale;
+        p.y += p.vy * timeScale;
+
+        if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
+          p.vy *= -1;
+        }
+
+        console.log("timeScale =", timeScale);
+
+        if (p.lifetime !== undefined && p.lifetime > 0) {
+          p.lifetime -= timeScale;
+          if (p.lifetime < 0) p.lifetime = 0;
+        }
+
+        if (p.lifetime < 50 && !p.decayed) {
+          console.warn(`🔥 Decay triggered for ${p.name} with lifetime = ${p.lifetime}`);
+          const decayProducts = window.decayParticle(p);
+          if (decayProducts && decayProducts.length > 0) {
+            particles.push(...decayProducts);
+          }
+          p.decayed = true;
+        }
+
+        console.log(`Particle ${p.name} lifetime: ${p.lifetime?.toFixed(1)}, decayed: ${p.decayed}`);
+        if (p.lifetime <= 50 && !p.decayed) {
+          console.log(`⚠️ ${p.name} should decay now`);
+        }
+      }
+
+      particles = particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
+      detectCollisions();
+    }
+
+    function detectCollisions() {
+      const collisionChance = 1e-2;
+
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const a = particles[i];
+          const b = particles[j];
+
+          if (a.beam === b.beam) continue;
+
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const distSq = dx * dx + dy * dy;
+          const radiusSum = a.r + b.r;
+
+          if (distSq < radiusSum * radiusSum) {
+            if (Math.random() < collisionChance) {
+              collisions.push({
+                x: (a.x + b.x) / 2,
+                y: (a.y + b.y) / 2,
+                r: (a.r + b.r) / 2,
+                time: Date.now()
+              });
+
+              // Decay only if lifetime expired and not already decayed
+              if (!a.decayed && a.lifetime <= 0) {
+                const decayProductsA = window.decayParticle(a);
+                console.log('Decay products A:', decayProductsA);
+                if (decayProductsA) {
+                  particles.push(...decayProductsA);
+                }
+                a.decayed = true;
               }
-              a.decayed = true;
-            }
-  
-            if (!b.decayed && b.lifetime <= 0) {
-              const decayProductsB = window.decayParticle(b);
-              console.log('Decay products B:', decayProductsB);
-              if (decayProductsB) {
-                particles.push(...decayProductsB);
+
+              if (!b.decayed && b.lifetime <= 0) {
+                const decayProductsB = window.decayParticle(b);
+                console.log('Decay products B:', decayProductsB);
+                if (decayProductsB) {
+                  particles.push(...decayProductsB);
+                }
+                b.decayed = true;
               }
-              b.decayed = true;
             }
           }
         }
       }
     }
-  }
 
-
-  function loop() {
-    if (!running) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Update zoom center based on zoom level
-    if (zoomLevel > 10 && particles.length >= 2) {
-      // Zoomed in: center between first two particles
-      const p1 = particles[0];
-      const p2 = particles[1];
-      zoomCenter.x = (p1.x + p2.x) / 2;
-      zoomCenter.y = (p1.y + p2.y) / 2;
-    } else {
-      // Zoomed out: center on canvas center
-      zoomCenter.x = canvas.width / 2;
-      zoomCenter.y = canvas.height / 2;
-    }
-
-    ctx.save();
-    // Translate to center of canvas
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    // Scale for zoom
-    ctx.scale(zoomLevel, zoomLevel);
-    // Translate zoom center to origin
-    ctx.translate(-zoomCenter.x, -zoomCenter.y);
-
-    updateParticles();
-    drawParticles();
-
-    ctx.restore();
-
-    animationId = requestAnimationFrame(loop);
-  }
-
-  function startSpawning() {
-    function spawnLoop() {
+    function loop() {
       if (!running) return;
-      createParticles();
-      setTimeout(spawnLoop, spawnInterval / timeScale); // scaled spawn speed
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Update zoom center based on zoom level
+      if (zoomLevel > 10 && particles.length >= 2) {
+        const p1 = particles[0];
+        const p2 = particles[1];
+        zoomCenter.x = (p1.x + p2.x) / 2;
+        zoomCenter.y = (p1.y + p2.y) / 2;
+      } else {
+        zoomCenter.x = canvas.width / 2;
+        zoomCenter.y = canvas.height / 2;
+      }
+
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(zoomLevel, zoomLevel);
+      ctx.translate(-zoomCenter.x, -zoomCenter.y);
+
+      updateParticles();
+      drawParticles();
+
+      ctx.restore();
+
+      animationId = requestAnimationFrame(loop);
     }
-    spawnLoop();
-  }
 
-  function stopSpawning() {
-    clearInterval(spawnTimer);
-    spawnTimer = null;
-  }
-
-  startBtn.addEventListener("click", () => {
-    if (!running) {
-      running = true;
-      createParticles();
-      loop();
-      startSpawning();
+    function startSpawning() {
+      function spawnLoop() {
+        if (!running) return;
+        createParticles();
+        setTimeout(spawnLoop, spawnInterval / timeScale);
+      }
+      spawnLoop();
     }
-  });
 
-  stopBtn.addEventListener("click", () => {
-    running = false;
-    stopSpawning();
-    if (animationId) {
-      cancelAnimationFrame(animationId);
-      animationId = null;
+    function stopSpawning() {
+      clearInterval(spawnTimer);
+      spawnTimer = null;
     }
-  });
 
-  resetBtn.addEventListener("click", () => {
-    running = false;
-    stopSpawning();
-    particles = [];
-    collisions = [];
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (animationId) {
-      cancelAnimationFrame(animationId);
-      animationId = null;
-    }
-  });
-
-  const leftParticleBtn = document.getElementById('leftParticleBtn');
-  const rightParticleBtn = document.getElementById('rightParticleBtn');
-  const particleModal = document.getElementById('particleModal');
-  const beamSideLabel = document.getElementById('beamSideLabel');
-  const normalParticlesContainer = document.getElementById('normalParticles');
-  const antiParticlesContainer = document.getElementById('antiParticles');
-  const closeModalBtn = document.getElementById('closeParticleModal');
-  
-  let selectingSide = 'left';
-  
-  let selectedParticles = {
-    left: { name: 'Electron', color: '#00f' },
-    right: { name: 'Anti-Electron', color: '#0f0' }
-  };
-  
-  const standardModelParticles = [
-    { name: 'Electron', color: '#00f' },
-    { name: 'Muon', color: '#0ff' },
-    { name: 'Tau', color: '#08f' },
-    { name: 'Up Quark', color: '#f00' },
-    { name: 'Down Quark', color: '#fa0' },
-    { name: 'Strange Quark', color: '#ff0' },
-    { name: 'Charm Quark', color: '#0f0' },
-    { name: 'Bottom Quark', color: '#0a0' },
-    { name: 'Top Quark', color: '#800' },
-    { name: 'Photon', color: '#fff' },
-    { name: 'Z Boson', color: '#ccc' },
-    { name: 'W Boson', color: '#999' }
-  ];
-  
-  function populateParticleGrid(grid, particles) {
-    grid.innerHTML = '';
-    particles.forEach(p => {
-     const btn = document.createElement('button');  // change div to button for semantics & accessibility
-    btn.className = 'particle-button';
-    btn.style.backgroundColor = '#000'; // black background for each button
-    
-    // Make button contents: a colored circle + particle name in white Arial text
-    
-    // Create circle element (a small colored div shaped as circle)
-    const circle = document.createElement('span');
-    circle.style.display = 'inline-block';
-    circle.style.width = '16px';
-    circle.style.height = '16px';
-    circle.style.borderRadius = '50%';
-    circle.style.backgroundColor = p.color;
-    circle.style.marginRight = '8px';
-    circle.style.verticalAlign = 'middle';
-    
-    // Create text element
-    const text = document.createElement('span');
-    text.textContent = p.name;
-    text.style.color = 'white';
-    text.style.fontFamily = 'Arial, sans-serif';
-    text.style.verticalAlign = 'middle';
-    
-    // Append circle and text to button
-    btn.appendChild(circle);
-    btn.appendChild(text);
-    
-    // Remove default outline but keep accessibility (visible on keyboard focus)
-    btn.style.outline = 'none';
-    btn.addEventListener('focus', () => {
-      btn.style.outline = '2px solid white';
+    startBtn.addEventListener("click", () => {
+      if (!running) {
+        running = true;
+        createParticles();
+        loop();
+        startSpawning();
+      }
     });
-    btn.addEventListener('blur', () => {
-      btn.style.outline = 'none';
+
+    stopBtn.addEventListener("click", () => {
+      running = false;
+      stopSpawning();
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
     });
-    
-    btn.addEventListener('click', () => {
-      selectedParticles[selectingSide] = p;
+
+    resetBtn.addEventListener("click", () => {
+      running = false;
+      stopSpawning();
+      particles = [];
+      collisions = [];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    });
+
+    const leftParticleBtn = document.getElementById('leftParticleBtn');
+    const rightParticleBtn = document.getElementById('rightParticleBtn');
+    const particleModal = document.getElementById('particleModal');
+    const beamSideLabel = document.getElementById('beamSideLabel');
+    const normalParticlesContainer = document.getElementById('normalParticles');
+    const antiParticlesContainer = document.getElementById('antiParticles');
+    const closeModalBtn = document.getElementById('closeParticleModal');
+
+    let selectingSide = 'left';
+
+    let selectedParticles = {
+      left: { name: 'Electron', color: '#00f' },
+      right: { name: 'Anti-Electron', color: '#0f0' }
+    };
+
+    const standardModelParticles = [
+      { name: 'Electron', color: '#00f' },
+      { name: 'Muon', color: '#0ff' },
+      { name: 'Tau', color: '#08f' },
+      { name: 'Up Quark', color: '#f00' },
+      { name: 'Down Quark', color: '#fa0' },
+      { name: 'Strange Quark', color: '#ff0' },
+      { name: 'Charm Quark', color: '#0f0' },
+      { name: 'Bottom Quark', color: '#0a0' },
+      { name: 'Top Quark', color: '#800' },
+      { name: 'Photon', color: '#fff' },
+      { name: 'Z Boson', color: '#ccc' },
+      { name: 'W Boson', color: '#999' }
+    ];
+
+    function populateParticleGrid(grid, particles) {
+      grid.innerHTML = '';
+      particles.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'particle-button';
+        btn.style.backgroundColor = '#000';
+
+        const circle = document.createElement('span');
+        circle.style.display = 'inline-block';
+        circle.style.width = '16px';
+        circle.style.height = '16px';
+        circle.style.borderRadius = '50%';
+        circle.style.backgroundColor = p.color;
+        circle.style.marginRight = '8px';
+        circle.style.verticalAlign = 'middle';
+
+        const text = document.createElement('span');
+        text.textContent = p.name;
+        text.style.color = 'white';
+        text.style.fontFamily = 'Arial, sans-serif';
+        text.style.verticalAlign = 'middle';
+
+        btn.appendChild(circle);
+        btn.appendChild(text);
+
+        btn.style.outline = 'none';
+        btn.addEventListener('focus', () => {
+          btn.style.outline = '2px solid white';
+        });
+        btn.addEventListener('blur', () => {
+          btn.style.outline = 'none';
+        });
+
+        btn.addEventListener('click', () => {
+          selectedParticles[selectingSide] = p;
+          particleModal.classList.remove('show');
+        });
+
+        grid.appendChild(btn);
+      });
+    }
+
+    leftParticleBtn.addEventListener('click', () => {
+      selectingSide = 'left';
+      beamSideLabel.textContent = 'left';
+      particleModal.classList.add('show');
+    });
+
+    rightParticleBtn.addEventListener('click', () => {
+      selectingSide = 'right';
+      beamSideLabel.textContent = 'right';
+      particleModal.classList.add('show');
+    });
+
+    closeModalBtn.addEventListener('click', () => {
       particleModal.classList.remove('show');
     });
-    
-    grid.appendChild(btn);
 
-    });
-  }
-  
-  leftParticleBtn.addEventListener('click', () => {
-    selectingSide = 'left';
-    beamSideLabel.textContent = 'left';
-    particleModal.classList.add('show');
-  });
-  
-  rightParticleBtn.addEventListener('click', () => {
-    selectingSide = 'right';
-    beamSideLabel.textContent = 'right';
-    particleModal.classList.add('show');
-  });
-  
-  closeModalBtn.addEventListener('click', () => {
-    particleModal.classList.remove('show');
-  });
-  
-  populateParticleGrid(normalParticlesContainer, standardModelParticles);
-  populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
-    name: 'Anti-' + p.name,
-    color: p.color.replace(/f/g, 'c') // Simple anti-matter color tweak
-  })));
-</script>
-<script src="monte-carlo-decay.js"></script>
+    populateParticleGrid(normalParticlesContainer, standardModelParticles);
+    populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
+      name: 'Anti-' + p.name,
+      color: p.color.replace(/f/g, 'c') // Simple antimatter color tweak
+    })));
+
+  }); // <-- End DOMContentLoaded listener
+  </script>
+  <script src="monte-carlo-decay.js"></script>
 </body>
 </html>
