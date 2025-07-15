@@ -379,21 +379,27 @@
     }
 
     function detectCollisions() {
-      const collisionChance = 1e-2;
-
+      const normalCollisionChance = 1e-2;
+    
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const a = particles[i];
           const b = particles[j];
-
+    
           if (a.beam === b.beam) continue;
-
+    
           const dx = a.x - b.x;
           const dy = a.y - b.y;
           const distSq = dx * dx + dy * dy;
           const radiusSum = a.r + b.r;
-
+    
           if (distSq < radiusSum * radiusSum) {
+            // Determine collision chance
+            let collisionChance = normalCollisionChance;
+            if (a.guaranteedCollision && b.guaranteedCollision) {
+              collisionChance = 1; // 100% collision chance
+            }
+    
             if (Math.random() < collisionChance) {
               collisions.push({
                 x: (a.x + b.x) / 2,
@@ -401,19 +407,15 @@
                 r: (a.r + b.r) / 2,
                 time: Date.now()
               });
-          
-              if (!a.decayed) {
-                startDecaySequence(a);
-              }
-          
-             if (!b.decayed) {
-                startDecaySequence(b);
-              }
+    
+              if (!a.decayed) startDecaySequence(a);
+              if (!b.decayed) startDecaySequence(b);
             }
           }
         }
       }
     }
+
 
     function loop() {
       if (!running) return;
@@ -594,7 +596,8 @@
         lifetime: 100,
         decayed: false,
         falling: false,
-        fallSpeed: 0
+        fallSpeed: 0,
+        guaranteedCollision: true  // <--- flag added
       });
     
       // Right particle
@@ -610,15 +613,16 @@
         lifetime: 100,
         decayed: false,
         falling: false,
-        fallSpeed: 0
+        fallSpeed: 0,
+        guaranteedCollision: true  // <--- flag added
       });
     
-      // Start animation loop if not running, but don't start spawning new batches
       if (!running) {
         running = true;
         loop();
       }
     });
+
 
 
 
