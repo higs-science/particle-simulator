@@ -283,18 +283,10 @@
           p.lifetime -= timeScale;
           if (p.lifetime < 0) p.lifetime = 0;
         }
-
-        if (p.lifetime <= 0 && !p.decayed) {
-          console.warn(`🔥 Decay triggered for ${p.name} with lifetime = ${p.lifetime}`);
-          const decayProducts = window.decayParticle(p);
-          if (decayProducts && decayProducts.length > 0) {
-            console.log("Decay products created:", decayProducts);
-            particles.push(...decayProducts);
-          }
-          p.decayed = true;
+        if (p.falling) {
+          p.y += p.fallSpeed * timeScale;
+          p.fallSpeed += 0.1 * timeScale; 
         }
-
-
         console.log(`Particle ${p.name} lifetime: ${p.lifetime?.toFixed(1)}, decayed: ${p.decayed}`);
         if (p.lifetime <= 50 && !p.decayed) {
           console.log(`⚠️ ${p.name} should decay now`);
@@ -304,7 +296,39 @@
       window.particles = window.particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
       detectCollisions();
     }
+    function startDecaySequence(particle) {
+      if (particle.decayed) return;  // Prevent multiple decay sequences
+      particle.decayed = true;
+    
+      // Save original position so particle can fall down
+      particle.falling = true;
+      particle.fallSpeed = 1;  // initial fall speed, can tweak
+    
+      // Get full decay chain (including recursive decays)
+      const decayChain = window.simulateDecayChain(particle);
+    
+      let index = 0;
+    
+      function showNextDecay() {
+        if (index >= decayChain.length) return;
+    
+        const decayParticle = decayChain[index];
+        // Position new particle near parent with a slight random offset
+        decayParticle.x = particle.x + (Math.random() - 0.5) * 30;
+        decayParticle.y = particle.y + (Math.random() - 0.5) * 30;
+        decayParticle.lifetime = 500;  // or assign some default lifetime if you want
+        decayParticle.decayed = false;
+    
+        particles.push(decayParticle);
+    
+        index++;
+        setTimeout(showNextDecay, 1000);  // 1 second delay between each decay product
+      }
+    
+      showNextDecay();
+    }
 
+    
     function detectCollisions() {
       const collisionChance = 1e-2;
 
@@ -328,24 +352,13 @@
                 r: (a.r + b.r) / 2,
                 time: Date.now()
               });
-
-              // Decay only if lifetime expired and not already decayed
+          
               if (!a.decayed && a.lifetime <= 0) {
-                const decayProductsA = window.decayParticle(a);
-                console.log('Decay products A:', decayProductsA);
-                if (decayProductsA) {
-                  particles.push(...decayProductsA);
-                }
-                a.decayed = true;
+                startDecaySequence(a);
               }
-
+          
               if (!b.decayed && b.lifetime <= 0) {
-                const decayProductsB = window.decayParticle(b);
-                console.log('Decay products B:', decayProductsB);
-                if (decayProductsB) {
-                  particles.push(...decayProductsB);
-                }
-                b.decayed = true;
+                startDecaySequence(b);
               }
             }
           }
