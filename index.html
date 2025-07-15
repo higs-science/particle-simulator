@@ -287,17 +287,12 @@
         if (p.lifetime <= 0 && !p.decayed) {
           console.warn(`🔥 Decay triggered for ${p.name} with lifetime = ${p.lifetime}`);
           const decayProducts = window.decayParticle(p);
-          console.log("Decay created particles:", decayProducts);
-          decayProducts?.forEach(dp => {
-            console.log(`➡️ Spawned: ${dp.name} at (${dp.x.toFixed(1)}, ${dp.y.toFixed(1)}) with color ${dp.color}`);
-          });
-          console.log("🧬 Decay products:", decayProducts);
           if (decayProducts && decayProducts.length > 0) {
             particles.push(...decayProducts);
-            console.log("✅ Added decay products to particles:", particles.slice(-5));
           }
           p.decayed = true;
         }
+
 
         console.log(`Particle ${p.name} lifetime: ${p.lifetime?.toFixed(1)}, decayed: ${p.decayed}`);
         if (p.lifetime <= 50 && !p.decayed) {
