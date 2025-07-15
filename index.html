@@ -336,47 +336,53 @@
     function startDecaySequence(particle) {
       if (particle.decayed) return;  // Prevent multiple decay sequences
       particle.decayed = true;
-
+    
       const originX = particle.x;
       const originY = particle.y;
-
+    
       particle.falling = false;
-      particle.vx = (Math.random() - 0.5) * 6; // explode out
-      particle.vy = (Math.random() - 0.5) * 6;
-
-
+      particle.vx = 0;
+      particle.vy = 0;
+    
       const decayChain = window.simulateDecayChain(particle);
-
       let index = 0;
-
+    
       function showNextDecay() {
         if (index >= decayChain.length) return;
-
+    
         const decayParticle = decayChain[index];
-
-        decayParticle.x = originX + (Math.random() - 0.5) * 30;
-        decayParticle.y = originY + (Math.random() - 0.5) * 30;
+    
+        // Position decay products close to collision point
+        decayParticle.x = originX;
+        decayParticle.y = originY;
         decayParticle.r = particle.r * 0.7;
-        decayParticle.lifetime = 500;
+        decayParticle.lifetime = 500 + Math.random() * 500;  // Vary lifetime a bit
         decayParticle.decayed = false;
         decayParticle.falling = false;
         decayParticle.fallSpeed = 0;
-
+    
         decayParticle.color = getColorForParticle(decayParticle.name) || '#fff';
-
-        const angle = Math.random() * 2 * Math.PI;
+    
+        // Assign opposite directions in pairs for momentum conservation
         const speed = 2 + Math.random() * 2;
+        const angle = (index % 2 === 0) ? Math.random() * Math.PI : Math.random() * Math.PI + Math.PI;
+    
         decayParticle.vx = Math.cos(angle) * speed;
         decayParticle.vy = Math.sin(angle) * speed;
-
+    
+        // Add a flag to allow further decay for these particles
+        decayParticle.canDecay = true;
+    
         particles.push(decayParticle);
-
         index++;
-        setTimeout(showNextDecay, 1000);
+    
+        // Schedule next decay spawn with delay proportional to lifetime
+        setTimeout(showNextDecay, 600);
       }
-
+    
       showNextDecay();
     }
+
 
     function detectCollisions() {
       const normalCollisionChance = 1e-2;
