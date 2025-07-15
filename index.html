@@ -99,6 +99,7 @@
     <button id="startBtn">Start</button>
     <button id="stopBtn">Stop</button>
     <button id="resetBtn">Reset</button>
+    <button id="fireOnePairBtn">Fire 1 Left + 1 Right</button>
 
     <label for="zoomSlider">
       Zoom:
@@ -339,8 +340,10 @@
       const originX = particle.x;
       const originY = particle.y;
 
-      particle.falling = true;
-      particle.fallSpeed = 1;
+      particle.falling = false;
+      particle.vx = (Math.random() - 0.5) * 6; // explode out
+      particle.vy = (Math.random() - 0.5) * 6;
+
 
       const decayChain = window.simulateDecayChain(particle);
 
@@ -490,6 +493,7 @@
     const normalParticlesContainer = document.getElementById('normalParticles');
     const antiParticlesContainer = document.getElementById('antiParticles');
     const closeModalBtn = document.getElementById('closeParticleModal');
+    const fireOnePairBtn = document.getElementById('fireOnePairBtn');
 
     let selectingSide = 'left';
 
@@ -572,6 +576,44 @@
     closeModalBtn.addEventListener('click', () => {
       particleModal.classList.remove('show');
     });
+
+    fireOnePairBtn.addEventListener("click", () => {
+      const baseRadius = 6;
+      const scaledRadius = baseRadius;
+    
+      // Left particle
+      particles.push({
+        x: scaledRadius + 10,
+        y: canvas.height / 2,
+        r: scaledRadius,
+        vx: 6,
+        vy: 0,
+        beam: "left",
+        color: selectedParticles.left.color,
+        name: selectedParticles.left.name || "Proton",
+        lifetime: 100,
+        decayed: false,
+        falling: false,
+        fallSpeed: 0
+      });
+    
+      // Right particle
+      particles.push({
+        x: canvas.width - scaledRadius - 10,
+        y: canvas.height / 2,
+        r: scaledRadius,
+        vx: -6,
+        vy: 0,
+        beam: "right",
+        color: selectedParticles.right.color,
+        name: selectedParticles.right.name || "Proton",
+        lifetime: 100,
+        decayed: false,
+        falling: false,
+        fallSpeed: 0
+      });
+    });
+
 
     // Utility to invert hex color, for antimatter
     function invertColor(hex) {
