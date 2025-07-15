@@ -533,3 +533,83 @@
         text.textContent = p.name;
         text.style.color = 'white';
         text.style.fontFamily = 'Arial, sans-serif';
+        text.style.fontSize = '14px';
+
+        btn.appendChild(circle);
+        btn.appendChild(text);
+
+        btn.addEventListener('click', () => {
+          selectedParticles[selectingSide] = { name: p.name, color: p.color };
+          particleModal.classList.remove('show');
+        });
+
+        grid.appendChild(btn);
+      });
+    }
+
+    leftParticleBtn.addEventListener('click', () => {
+      selectingSide = 'left';
+      beamSideLabel.textContent = 'left';
+      populateParticleGrid(normalParticlesContainer, standardModelParticles);
+      populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
+        name: 'Anti-' + p.name,
+        color: invertColor(p.color)
+      })));
+      particleModal.classList.add('show');
+    });
+
+    rightParticleBtn.addEventListener('click', () => {
+      selectingSide = 'right';
+      beamSideLabel.textContent = 'right';
+      populateParticleGrid(normalParticlesContainer, standardModelParticles);
+      populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
+        name: 'Anti-' + p.name,
+        color: invertColor(p.color)
+      })));
+      particleModal.classList.add('show');
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      particleModal.classList.remove('show');
+    });
+
+    // Utility to invert hex color, for antimatter
+    function invertColor(hex) {
+      if (!hex.startsWith('#')) return hex;
+      let c = hex.substring(1);
+      if (c.length === 3) {
+        c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+      }
+      let num = parseInt(c, 16);
+      let r = 255 - ((num >> 16) & 255);
+      let g = 255 - ((num >> 8) & 255);
+      let b = 255 - (num & 255);
+      return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    // Dummy Monte Carlo decay chain function (replace with your real function)
+    window.simulateDecayChain = function(particle) {
+      // Return a chain of decay particles, example:
+      if (particle.name.toLowerCase().includes("electron")) {
+        return [
+          { name: "Photon", color: "#fff" },
+          { name: "Positron", color: "#0ff" },
+          { name: "Neutrino", color: "#ccc" }
+        ];
+      }
+      if (particle.name.toLowerCase().includes("proton")) {
+        return [
+          { name: "Muon", color: "#0ff" },
+          { name: "Neutrino", color: "#ccc" }
+        ];
+      }
+      // Default decay chain
+      return [
+        { name: "Photon", color: "#fff" }
+      ];
+    };
+
+  });
+  </script>
+</body>
+</html>
