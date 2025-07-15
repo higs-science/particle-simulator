@@ -173,7 +173,7 @@
     window.addEventListener("resize", resizeCanvas);
 
     window.particles = [];
-    let particles = window.particles;
+    const particles = window.particles;
     window.collisions = [];
     let collisions = window.collisions;
     let animationId = null;
@@ -297,7 +297,7 @@
         }
       }
 
-      particles = particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
+      window.particles = window.particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
       detectCollisions();
     }
 
