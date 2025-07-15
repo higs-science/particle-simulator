@@ -399,11 +399,11 @@
                 time: Date.now()
               });
           
-              if (!a.decayed && a.lifetime <= 0) {
+              if (!a.decayed) {
                 startDecaySequence(a);
               }
           
-              if (!b.decayed && b.lifetime <= 0) {
+             if (!b.decayed) {
                 startDecaySequence(b);
               }
             }
