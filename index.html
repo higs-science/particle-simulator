@@ -613,13 +613,13 @@
         fallSpeed: 0
       });
     
-      // Start simulation if not running
+      // Start animation loop if not running, but don't start spawning new batches
       if (!running) {
         running = true;
         loop();
-        startSpawning();
       }
     });
+
 
 
 
