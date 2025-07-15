@@ -206,7 +206,7 @@
 
       for (let i = 0; i < batchSize; i++) {
         particles.push({
-          x: Math.random() * 100,
+          x: canvas.width / 2 + (Math.random() - 0.5) * 100,
           y: bandTop() + Math.random() * (bandBottom() - bandTop()),
           r: scaledRadius,
           vx: 5 + Math.random() * 2,
@@ -219,7 +219,7 @@
         });
 
         particles.push({
-          x: canvas.width - Math.random() * 100,
+          x: canvas.width / 2 + (Math.random() - 0.5) * 100,
           y: bandTop() + Math.random() * (bandBottom() - bandTop()),
           r: scaledRadius,
           vx: -5 - Math.random() * 2,
@@ -234,15 +234,22 @@
     }
 
     function drawParticles() {
-     for (let p of particles) {
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur = 10;
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      for (let p of particles) {
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    
+        // Draw particle name in white, positioned slightly right of the particle
+        ctx.fillStyle = 'white';  // Reset fill style for text so it's visible
+        ctx.font = "10px Arial";
+        ctx.fillText(p.name, p.x + p.r + 2, p.y + 3); // +3 to align text vertically better
+      }
     }
+
 
       // Draw collision flashes
       const now = Date.now();
