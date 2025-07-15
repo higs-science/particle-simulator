@@ -288,6 +288,7 @@
           console.warn(`🔥 Decay triggered for ${p.name} with lifetime = ${p.lifetime}`);
           const decayProducts = window.decayParticle(p);
           if (decayProducts && decayProducts.length > 0) {
+            console.log("Decay products created:", decayProducts);
             particles.push(...decayProducts);
           }
           p.decayed = true;
