@@ -243,43 +243,33 @@
         ctx.fill();
         ctx.shadowBlur = 0;
     
-        function drawParticles() {
-          for (let p of particles) {
-            ctx.shadowColor = p.color;
-            ctx.shadowBlur = 10;
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        
-            // Draw particle name in white
-            ctx.fillStyle = 'white';
-            ctx.font = "10px Arial";
-            ctx.fillText(p.name, p.x + p.r + 2, p.y + 3);
-          }
-        
-          // 🟡 NOW put the collision flash code here, outside the for-loop
-          const now = Date.now();
-          for (let i = collisions.length - 1; i >= 0; i--) {
-            const c = collisions[i];
-            const elapsed = now - c.time;
-            const duration = 300 / timeScale;
-            if (elapsed > duration) {
-              collisions.splice(i, 1);
-              continue;
-            }
-            const alpha = 1 - elapsed / duration;
-            ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
-            ctx.beginPath();
-            ctx.arc(c.x, c.y, c.r * 2 * alpha, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        
-          collisions = collisions.filter(c => Date.now() - c.time < 200);
+        // Draw particle name in white
+        ctx.fillStyle = 'white';
+        ctx.font = "10px Arial";
+        ctx.fillText(p.name, p.x + p.r + 2, p.y + 3);
+      }
+    
+      // 🟡 Draw collision flashes
+      const now = Date.now();
+      for (let i = collisions.length - 1; i >= 0; i--) {
+        const c = collisions[i];
+        const elapsed = now - c.time;
+        const duration = 300 / timeScale;
+        if (elapsed > duration) {
+          collisions.splice(i, 1);
+          continue;
         }
+        const alpha = 1 - elapsed / duration;
+        ctx.fillStyle = `rgba(255, 255, 0, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r * 2 * alpha, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    
+      collisions = collisions.filter(c => Date.now() - c.time < 200);
+    }
 
-
+    
     function updateParticles() {
       for (let p of particles) {
         if (Math.abs(p.vx) < 0.1) {
