@@ -217,7 +217,7 @@
           lifetime: 1000,
           decayed: false
         });
-
+        
         particles.push({
           x: canvas.width / 2 + (Math.random() - 0.5) * 100,
           y: bandTop() + Math.random() * (bandBottom() - bandTop()),
@@ -414,8 +414,9 @@
       clearInterval(spawnTimer);
       spawnTimer = null;
     }
-    let running = false;
 
+    let running = false;
+    
     startBtn.addEventListener("click", () => {
       if (!running) {
         running = true;
