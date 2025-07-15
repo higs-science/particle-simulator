@@ -269,7 +269,7 @@
       }
 
       collisions = collisions.filter(c => Date.now() - c.time < 200);
-    }
+    });
 
     function updateParticles() {
       for (let p of particles) {
