@@ -294,6 +294,7 @@
           console.log("🧬 Decay products:", decayProducts);
           if (decayProducts && decayProducts.length > 0) {
             particles.push(...decayProducts);
+            console.log("✅ Added decay products to particles:", particles.slice(-5));
           }
           p.decayed = true;
         }
