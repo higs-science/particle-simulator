@@ -182,7 +182,6 @@
     const bandTop = () => canvas.height * 0.25;
     const bandBottom = () => canvas.height * 0.75;
     const spawnInterval = 500;
-    let spawnTimer = null;
 
     // Zoom variables
     let zoomLevel = 1; // scale factor (1 = normal)
@@ -205,30 +204,36 @@
       const scaledRadius = baseRadius * (10 / batchSize); // Fewer particles = bigger radius
 
       for (let i = 0; i < batchSize; i++) {
+        // LEFT beam particles start near left edge, moving right
         particles.push({
-          x: canvas.width / 2 + (Math.random() - 0.5) * 100,
+          x: scaledRadius + Math.random() * 30, // near left edge + some randomness
           y: bandTop() + Math.random() * (bandBottom() - bandTop()),
           r: scaledRadius,
           vx: 5 + Math.random() * 2,
-          vy: (Math.random() - 0.5) * 0.5,
-          beam: "right",
-          color: selectedParticles.right.color,
-          name: selectedParticles.right.name || "Proton",
-          lifetime: 1000,
-          decayed: false
-        });
-        
-        particles.push({
-          x: canvas.width / 2 + (Math.random() - 0.5) * 100,
-          y: bandTop() + Math.random() * (bandBottom() - bandTop()),
-          r: scaledRadius,
-          vx: -5 - Math.random() * 2,
           vy: (Math.random() - 0.5) * 0.5,
           beam: "left",
           color: selectedParticles.left.color,
           name: selectedParticles.left.name || "Proton",
           lifetime: 50,
-          decayed: false
+          decayed: false,
+          falling: false,
+          fallSpeed: 0
+        });
+
+        // RIGHT beam particles start near right edge, moving left
+        particles.push({
+          x: canvas.width - scaledRadius - Math.random() * 30, // near right edge - some randomness
+          y: bandTop() + Math.random() * (bandBottom() - bandTop()),
+          r: scaledRadius,
+          vx: -5 - Math.random() * 2,
+          vy: (Math.random() - 0.5) * 0.5,
+          beam: "right",
+          color: selectedParticles.right.color,
+          name: selectedParticles.right.name || "Proton",
+          lifetime: 1000,
+          decayed: false,
+          falling: false,
+          fallSpeed: 0
         });
       }
     }
@@ -242,11 +247,16 @@
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
-    
-        // Draw particle name in white
-        ctx.fillStyle = 'white';
-        ctx.font = "10px Arial";
-        ctx.fillText(p.name, p.x + p.r + 2, p.y + 3);
+
+        // Draw particle name ONLY if particle is visible inside canvas boundaries
+        if (
+          p.x + p.r > 0 && p.x - p.r < canvas.width &&
+          p.y + p.r > 0 && p.y - p.r < canvas.height
+        ) {
+          ctx.fillStyle = 'white';
+          ctx.font = "10px Arial";
+          ctx.fillText(p.name, p.x + p.r + 2, p.y + 3);
+        }
       }
     
       // 🟡 Draw collision flashes
@@ -269,72 +279,102 @@
       collisions = collisions.filter(c => Date.now() - c.time < 200);
     }
 
-    
     function updateParticles() {
       for (let p of particles) {
         if (Math.abs(p.vx) < 0.1) {
           p.vx = (Math.random() - 0.5) * 2;
         }
 
-        p.x += p.vx * timeScale;
-        p.y += p.vy * timeScale;
+        if (!p.falling) {
+          p.x += p.vx * timeScale;
+          p.y += p.vy * timeScale;
 
-        if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
-          p.vy *= -1;
+          // Bounce vertically inside the band limits
+          if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
+            p.vy *= -1;
+          }
+        } else {
+          // Falling particle logic (after decay)
+          p.y += p.fallSpeed * timeScale;
+          p.fallSpeed += 0.1 * timeScale; 
         }
-
-        console.log("timeScale =", timeScale);
 
         if (p.lifetime !== undefined && p.lifetime > 0) {
           p.lifetime -= timeScale;
           if (p.lifetime < 0) p.lifetime = 0;
         }
-        if (p.falling) {
-          p.y += p.fallSpeed * timeScale;
-          p.fallSpeed += 0.1 * timeScale; 
-        }
-        console.log(`Particle ${p.name} lifetime: ${p.lifetime?.toFixed(1)}, decayed: ${p.decayed}`);
+
+        // Debug logs can be commented out to improve performance
+        //console.log(`Particle ${p.name} lifetime: ${p.lifetime?.toFixed(1)}, decayed: ${p.decayed}`);
+
+        // Only log warning if lifetime threshold reached and not decayed yet
         if (p.lifetime <= 50 && !p.decayed) {
-          console.log(`⚠️ ${p.name} should decay now`);
+          //console.log(`⚠️ ${p.name} should decay now`);
         }
       }
 
-      window.particles = window.particles.filter(p => !p.decayed || (p.x + p.r > 0 && p.x - p.r < canvas.width));
+      // Remove decayed particles only if fully off screen (bottom or sides)
+      window.particles = window.particles.filter(p => {
+        if (!p.decayed) return true;
+        // keep if still visible inside canvas (including radius)
+        return (
+          p.x + p.r > 0 &&
+          p.x - p.r < canvas.width &&
+          p.y - p.r < canvas.height
+        );
+      });
+
       detectCollisions();
     }
+
+    // Improved decay sequence that animates through all decay stages smoothly
     function startDecaySequence(particle) {
       if (particle.decayed) return;  // Prevent multiple decay sequences
       particle.decayed = true;
-    
-      // Save original position so particle can fall down
+
+      // Save original position to anchor decay products animation
+      const originX = particle.x;
+      const originY = particle.y;
+
+      // Make parent particle fall down
       particle.falling = true;
-      particle.fallSpeed = 1;  // initial fall speed, can tweak
-    
-      // Get full decay chain (including recursive decays)
+      particle.fallSpeed = 1;
+
       const decayChain = window.simulateDecayChain(particle);
-    
+
       let index = 0;
-    
+
       function showNextDecay() {
         if (index >= decayChain.length) return;
-    
+
         const decayParticle = decayChain[index];
-        // Position new particle near parent with a slight random offset
-        decayParticle.x = particle.x + (Math.random() - 0.5) * 30;
-        decayParticle.y = particle.y + (Math.random() - 0.5) * 30;
-        decayParticle.lifetime = 500;  // or assign some default lifetime if you want
+
+        // Start position near the origin particle with a small random offset
+        decayParticle.x = originX + (Math.random() - 0.5) * 30;
+        decayParticle.y = originY + (Math.random() - 0.5) * 30;
+        decayParticle.r = particle.r * 0.7; // slightly smaller
+        decayParticle.lifetime = 500;
         decayParticle.decayed = false;
-    
+        decayParticle.falling = false;
+        decayParticle.fallSpeed = 0;
+
+        // Animate decayParticle moving outwards from origin:
+        // Add a small random velocity away from origin
+        const angle = Math.random() * 2 * Math.PI;
+        const speed = 2 + Math.random() * 2;
+        decayParticle.vx = Math.cos(angle) * speed;
+        decayParticle.vy = Math.sin(angle) * speed;
+
         particles.push(decayParticle);
-    
+
         index++;
-        setTimeout(showNextDecay, 1000);  // 1 second delay between each decay product
+        // Wait 1 second before spawning next decay particle
+        setTimeout(showNextDecay, 1000);
       }
-    
+
       showNextDecay();
     }
 
-    
     function detectCollisions() {
       const collisionChance = 1e-2;
 
@@ -410,9 +450,9 @@
     }
 
     function stopSpawning() {
-      clearInterval(spawnTimer);
-      spawnTimer = null;
+      // This clears interval but we only use recursive setTimeout, so no timer to clear here
     }    
+
     startBtn.addEventListener("click", () => {
       if (!running) {
         running = true;
