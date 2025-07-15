@@ -102,7 +102,7 @@ window.decayParticle = function(particle) {
     return {
       x: particle.x + (Math.random() - 0.5) * 20,
       y: particle.y + (Math.random() - 0.5) * 20,
-      r: particle.r / 2,
+      r: Math.max(particle.r * 0.75, 4),
       vx: (Math.random() - 0.5) * 3,
       vy: (Math.random() - 0.5) * 3,
       beam: particle.beam,
