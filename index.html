@@ -612,7 +612,15 @@
         falling: false,
         fallSpeed: 0
       });
+    
+      // Start simulation if not running
+      if (!running) {
+        running = true;
+        loop();
+        startSpawning();
+      }
     });
+
 
 
     // Utility to invert hex color, for antimatter
