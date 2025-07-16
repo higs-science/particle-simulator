@@ -146,18 +146,40 @@
     const rightBall = document.getElementById("rightBall");
     const leftInfo = document.getElementById("leftInfo");
     const rightInfo = document.getElementById("rightInfo");
-    
+
+    const PARTICLE_PROPERTIES = {
+      "Electron": { mass: "0.511 MeV", charge: "-1", spin: "½" },
+      "Anti-Electron": { mass: "0.511 MeV", charge: "+1", spin: "½" },
+      "Proton": { mass: "938 MeV", charge: "+1", spin: "½" },
+      "Anti-Proton": { mass: "938 MeV", charge: "-1", spin: "½" },
+      "Photon": { mass: "0", charge: "0", spin: "1" },
+      "Muon": { mass: "105.7 MeV", charge: "-1", spin: "½" },
+      "Anti-Muon": { mass: "105.7 MeV", charge: "+1", spin: "½" },
+      "Neutrino": { mass: "< 1 eV", charge: "0", spin: "½" },
+      "Anti-Neutrino": { mass: "< 1 eV", charge: "0", spin: "½" },
+      // Add more if needed
+    };
+
     function updateParticleDisplays() {
       const left = selectedParticles.left;
       const right = selectedParticles.right;
       leftBall.style.backgroundColor = left.color;
       rightBall.style.backgroundColor = right.color;
-      leftInfo.innerHTML = `Mass: ?<br>Charge: ?<br>Spin: ?`;
-      rightInfo.innerHTML = `Mass: ?<br>Charge: ?<br>Spin: ?`;
+      const leftProps = PARTICLE_PROPERTIES[left.name] || { mass: "?", charge: "?", spin: "?" };
+      const rightProps = PARTICLE_PROPERTIES[right.name] || { mass: "?", charge: "?", spin: "?" };
+      
+      leftInfo.innerHTML = `Mass: ${leftProps.mass}<br>Charge: ${leftProps.charge}<br>Spin: ${leftProps.spin}`;
+      rightInfo.innerHTML = `Mass: ${rightProps.mass}<br>Charge: ${rightProps.charge}<br>Spin: ${rightProps.spin}`;
+
     }
     updateParticleDisplays();
     
     document.getElementById("leftParticleDisplay").addEventListener("click", () => {
+      if (particleModal.classList.contains("show")) {
+        particleModal.classList.remove("show");
+        return;
+      }
+    
       if (selectedParticles.left.name.startsWith("Anti-")) {
         selectedParticles.left.name = selectedParticles.left.name.replace("Anti-", "");
         selectedParticles.left.color = invertColor(selectedParticles.left.color);
@@ -165,11 +187,18 @@
         selectedParticles.left.name = "Anti-" + selectedParticles.left.name;
         selectedParticles.left.color = invertColor(selectedParticles.left.color);
       }
+    
       updateParticleDisplays();
-      particleModal.classList.toggle("show");
+      particleModal.classList.add("show");
     });
+
     
     document.getElementById("rightParticleDisplay").addEventListener("click", () => {
+      if (particleModal.classList.contains("show")) {
+        particleModal.classList.remove("show");
+        return;
+      }
+    
       if (selectedParticles.right.name.startsWith("Anti-")) {
         selectedParticles.right.name = selectedParticles.right.name.replace("Anti-", "");
         selectedParticles.right.color = invertColor(selectedParticles.right.color);
@@ -177,17 +206,17 @@
         selectedParticles.right.name = "Anti-" + selectedParticles.right.name;
         selectedParticles.right.color = invertColor(selectedParticles.right.color);
       }
+    
       updateParticleDisplays();
-      particleModal.classList.toggle("show");
+      particleModal.classList.add("show");
     });
+
 
     const canvas = document.getElementById("sim");
     const ctx = canvas.getContext("2d");
     const startBtn = document.getElementById("startBtn");
     const stopBtn = document.getElementById("stopBtn");
     const resetBtn = document.getElementById("resetBtn");
-    const zoomSlider = document.getElementById("zoomSlider");
-    const zoomLabel = document.querySelector("#controls span#zoomLabel");
     const timeScaleInput = document.getElementById("timeScaleInput");
     const particleCountInput = document.getElementById("particleCountInput");
     const particleCountLabel = document.getElementById("particleCountLabel");
@@ -449,22 +478,6 @@
       if (!running) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Update zoom center based on zoom level
-      if (zoomLevel > 10 && particles.length >= 2) {
-        const p1 = particles[0];
-        const p2 = particles[1];
-        zoomCenter.x = (p1.x + p2.x) / 2;
-        zoomCenter.y = (p1.y + p2.y) / 2;
-      } else {
-        zoomCenter.x = canvas.width / 2;
-        zoomCenter.y = canvas.height / 2;
-      }
-
-      ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.scale(zoomLevel, zoomLevel);
-      ctx.translate(-zoomCenter.x, -zoomCenter.y);
-
       updateParticles();
       drawParticles();
 
@@ -517,8 +530,6 @@
       }
     });
 
-    const leftParticleBtn = document.getElementById('leftParticleBtn');
-    const rightParticleBtn = document.getElementById('rightParticleBtn');
     const particleModal = document.getElementById('particleModal');
     const beamSideLabel = document.getElementById('beamSideLabel');
     const normalParticlesContainer = document.getElementById('normalParticles');
@@ -591,28 +602,6 @@
         grid.appendChild(btn);
       });
     }
-
-    leftParticleBtn.addEventListener('click', () => {
-      selectingSide = 'left';
-      beamSideLabel.textContent = 'left';
-      populateParticleGrid(normalParticlesContainer, standardModelParticles);
-      populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
-        name: 'Anti-' + p.name,
-        color: invertColor(p.color)
-      })));
-      particleModal.classList.add('show');
-    });
-
-    rightParticleBtn.addEventListener('click', () => {
-      selectingSide = 'right';
-      beamSideLabel.textContent = 'right';
-      populateParticleGrid(normalParticlesContainer, standardModelParticles);
-      populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
-        name: 'Anti-' + p.name,
-        color: invertColor(p.color)
-      })));
-      particleModal.classList.add('show');
-    });
 
     fireOnePairBtn.addEventListener("click", () => {
       const baseRadius = 6;
