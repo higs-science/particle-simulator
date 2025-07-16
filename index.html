@@ -96,32 +96,32 @@
 </head>
 <body>
   <div id="controls">
-    <button id="startBtn">Start</button>
+    <button id="startBtn">⏵</button>
     <button id="stopBtn">Stop</button>
-    <button id="resetBtn">Reset</button>
+    <button id="resetBtn">🔄</button>
     <button id="fireOnePairBtn">Fire 1 Left + 1 Right</button>
-
-    <label for="zoomSlider">
-      Zoom:
-      <input id="zoomSlider" type="range" min="1" max="100" step="1" value="100" />
-      <span id="zoomLabel">100%</span>
-    </label>
 
     <label for="timeScaleInput">
       Time Scale:
-      <input id="timeScaleInput" type="number" min="0.01" max="10" step="0.1" value="1" />
+      <input id="timeScaleInput" type="range" min="0.1" max="5" step="0.1" value="1" />
     </label>
 
     <label for="particleCountInput">
       Particle Count:
-      <input id="particleCountInput" type="range" min="1" max="100" step="1" value="10" />
+      <input id="particleCountInput" type="number" min="1" max="100" step="1" value="10" />
       <span id="particleCountLabel">10</span>
     </label>
 
-    <div id="particleControls">
-      <button id="leftParticleBtn">Left Particle</button>
-      <button id="rightParticleBtn">Right Particle</button>
+    <div id="leftParticleDisplay" style="position: absolute; bottom: 20px; left: 20px; text-align: center; cursor: pointer;">
+      <div id="leftBall" style="width: 40px; height: 40px; border-radius: 50%; background: #00f; margin: auto;"></div>
+      <div id="leftInfo" style="color: white; font-size: 12px;"></div>
     </div>
+    
+    <div id="rightParticleDisplay" style="position: absolute; bottom: 20px; right: 20px; text-align: center; cursor: pointer;">
+      <div id="rightBall" style="width: 40px; height: 40px; border-radius: 50%; background: #0f0; margin: auto;"></div>
+      <div id="rightInfo" style="color: white; font-size: 12px;"></div>
+    </div>
+
   </div>
 
   <div id="particleModal">
@@ -135,7 +135,6 @@
       <div class="grid-label">Antimatter Counterparts</div>
       <div class="particle-grid" id="antiParticles"></div>
 
-      <button id="closeParticleModal">Close</button>
     </div>
   </div>
 
@@ -143,6 +142,45 @@
 
   <script>
   window.addEventListener("DOMContentLoaded", () => {
+    const leftBall = document.getElementById("leftBall");
+    const rightBall = document.getElementById("rightBall");
+    const leftInfo = document.getElementById("leftInfo");
+    const rightInfo = document.getElementById("rightInfo");
+    
+    function updateParticleDisplays() {
+      const left = selectedParticles.left;
+      const right = selectedParticles.right;
+      leftBall.style.backgroundColor = left.color;
+      rightBall.style.backgroundColor = right.color;
+      leftInfo.innerHTML = `Mass: ?<br>Charge: ?<br>Spin: ?`;
+      rightInfo.innerHTML = `Mass: ?<br>Charge: ?<br>Spin: ?`;
+    }
+    updateParticleDisplays();
+    
+    document.getElementById("leftParticleDisplay").addEventListener("click", () => {
+      if (selectedParticles.left.name.startsWith("Anti-")) {
+        selectedParticles.left.name = selectedParticles.left.name.replace("Anti-", "");
+        selectedParticles.left.color = invertColor(selectedParticles.left.color);
+      } else {
+        selectedParticles.left.name = "Anti-" + selectedParticles.left.name;
+        selectedParticles.left.color = invertColor(selectedParticles.left.color);
+      }
+      updateParticleDisplays();
+      particleModal.classList.toggle("show");
+    });
+    
+    document.getElementById("rightParticleDisplay").addEventListener("click", () => {
+      if (selectedParticles.right.name.startsWith("Anti-")) {
+        selectedParticles.right.name = selectedParticles.right.name.replace("Anti-", "");
+        selectedParticles.right.color = invertColor(selectedParticles.right.color);
+      } else {
+        selectedParticles.right.name = "Anti-" + selectedParticles.right.name;
+        selectedParticles.right.color = invertColor(selectedParticles.right.color);
+      }
+      updateParticleDisplays();
+      particleModal.classList.toggle("show");
+    });
+
     const canvas = document.getElementById("sim");
     const ctx = canvas.getContext("2d");
     const startBtn = document.getElementById("startBtn");
@@ -183,22 +221,6 @@
     const bandTop = () => canvas.height * 0.25;
     const bandBottom = () => canvas.height * 0.75;
     const spawnInterval = 500;
-
-    // Zoom variables
-    let zoomLevel = 1; // scale factor (1 = normal)
-    let zoomCenter = { x: canvas.width / 2, y: canvas.height / 2 };
-
-    // Initialize zoom slider and label
-    zoomLabel.textContent = zoomSlider.value + "%";
-
-    zoomSlider.addEventListener("input", () => {
-      const val = parseInt(zoomSlider.value);
-      zoomLabel.textContent = val + "%";
-      // Map slider 1..100 to zoomLevel 100..1 (inverted)
-      zoomLevel = 101 - val;
-      if (zoomLevel < 1) zoomLevel = 1;
-      if (zoomLevel > 100) zoomLevel = 100;
-    });
 
     function createParticles() {
       const baseRadius = 6;
@@ -466,6 +488,7 @@
 
     startBtn.addEventListener("click", () => {
       if (!running) {
+        startBtn.textContent = "⏸";
         running = true;
         createParticles();
         loop();
@@ -551,9 +574,19 @@
         btn.appendChild(text);
 
         btn.addEventListener('click', () => {
-          selectedParticles[selectingSide] = { name: p.name, color: p.color };
+          let current = selectedParticles[selectingSide].name;
+          let clickedName = p.name;
+          if (current === clickedName) {
+            clickedName = "Anti-" + clickedName;
+          }
+          selectedParticles[selectingSide] = {
+            name: clickedName,
+            color: clickedName.startsWith("Anti-") ? invertColor(p.color) : p.color
+          };
           particleModal.classList.remove('show');
+          updateParticleDisplays();
         });
+
 
         grid.appendChild(btn);
       });
@@ -579,10 +612,6 @@
         color: invertColor(p.color)
       })));
       particleModal.classList.add('show');
-    });
-
-    closeModalBtn.addEventListener('click', () => {
-      particleModal.classList.remove('show');
     });
 
     fireOnePairBtn.addEventListener("click", () => {
