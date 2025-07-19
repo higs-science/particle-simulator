@@ -97,7 +97,6 @@
 <body>
   <div id="controls">
     <button id="startBtn">⏵</button>
-    <button id="stopBtn">Stop</button>
     <button id="resetBtn">🔄</button>
     <button id="fireOnePairBtn">Fire 1 Left + 1 Right</button>
 
@@ -141,7 +140,6 @@
   <canvas id="sim"></canvas>
 
   <script>
-    const startBtn = document.getElementById("startBtn");
     let isRunning = true;
     
     startBtn.addEventListener("click", () => {
@@ -223,7 +221,6 @@
     const canvas = document.getElementById("sim");
     const ctx = canvas.getContext("2d");
     const startBtn = document.getElementById("startBtn");
-    const stopBtn = document.getElementById("stopBtn");
     const resetBtn = document.getElementById("resetBtn");
     const timeScaleInput = document.getElementById("timeScaleInput");
     const particleCountInput = document.getElementById("particleCountInput");
@@ -491,18 +488,21 @@
     }
 
 
-    function loop() {
-      if (!running) return;
+   function loop() {
+      if (!animationId) return; // Stop loop if no animation frame ID (fully stopped)
+    
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      updateParticles();
-      drawParticles();
-
+    
+      if (running) {
+        updateParticles();  // Move particles only if running
+      }
+      drawParticles();      // Always redraw particles
+    
       ctx.restore();
-
+    
       animationId = requestAnimationFrame(loop);
     }
-
+    
     function startSpawning() {
       function spawnLoop() {
         if (!running) return;
@@ -511,31 +511,29 @@
       }
       spawnLoop();
     }
-
+    
     function stopSpawning() {
       // no interval timers to clear; recursive setTimeout only
     }    
-
+    
     startBtn.addEventListener("click", () => {
       if (running) {
-        // If running, stop simulation
+        // Pause simulation: stop updating particles but keep canvas drawn
         running = false;
-        startBtn.textContent = "⏵";
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-          animationId = null;
-        }
-        stopSpawning();
+        startBtn.textContent = "⏵"; // Show play symbol
+        // DO NOT cancelAnimationFrame here, keep loop running to redraw paused frame
+        stopSpawning(); // Stop spawning new particles
       } else {
-        // If stopped, start simulation
-        startBtn.textContent = "⏸";
+        // Start simulation: resume particle movement
+        startBtn.textContent = "⏸"; // Show pause symbol
         running = true;
-        createParticles();
-        loop();
+        if (!animationId) {
+          animationId = requestAnimationFrame(loop);
+        }
         startSpawning();
       }
     });
-
+    
     resetBtn.addEventListener("click", () => {
       running = false;
       stopSpawning();
