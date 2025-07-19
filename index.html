@@ -141,6 +141,13 @@
   <canvas id="sim"></canvas>
 
   <script>
+    const startBtn = document.getElementById("startBtn");
+    let isRunning = true;
+    
+    startBtn.addEventListener("click", () => {
+      isRunning = !isRunning;
+      startBtn.textContent = isRunning ? "⏸" : "⏵";
+    });
   window.addEventListener("DOMContentLoaded", () => {
     const leftBall = document.getElementById("leftBall");
     const rightBall = document.getElementById("rightBall");
@@ -325,38 +332,45 @@
     }
 
     function updateParticles() {
+      if (!isRunning) {
+        requestAnimationFrame(updateParticles);
+        return;
+      }
+    
       for (let p of particles) {
         if (Math.abs(p.vx) < 0.1 && !p.falling) {
           p.vx = (Math.random() - 0.5) * 2;
         }
-
+    
         if (!p.falling) {
+          // Normal motion
           p.x += p.vx * timeScale;
           p.y += p.vy * timeScale;
-
-          // Bounce vertically inside the band limits ONLY if NOT falling
+    
+          // Bounce vertically inside the band limits
           if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
             p.vy *= -1;
           }
         } else {
-          // Falling particle logic: move down steadily off screen
-          p.x += 0; // no horizontal move on fall, can adjust if you want drift
+          // Falling logic
+          p.x += 0; // Can add drift here if needed
           p.y += p.fallSpeed * timeScale;
           p.fallSpeed += 0.1 * timeScale;
-
-          // Slowly reduce velocity on fall (optional)
+    
+          // Slowly reduce horizontal and vertical velocity
           p.vx *= 0.95;
           p.vy *= 0.95;
         }
-
+    
+        // Lifetime countdown
         if (p.lifetime !== undefined && p.lifetime > 0) {
           p.lifetime -= timeScale;
           if (p.lifetime < 0) p.lifetime = 0;
         }
       }
-
-      // Remove decayed particles once fully off screen (below or off sides)
-      window.particles = window.particles.filter(p => {
+    
+      // Remove decayed particles once fully off screen
+      particles = particles.filter(p => {
         if (!p.decayed) return true;
         return (
           p.x + p.r > 0 &&
@@ -364,9 +378,11 @@
           p.y - p.r < canvas.height
         );
       });
-
+    
       detectCollisions();
+      requestAnimationFrame(updateParticles);
     }
+
 
     // Helper: map particle names to colors
     function getColorForParticle(name) {
