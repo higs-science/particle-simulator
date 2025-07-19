@@ -259,41 +259,46 @@
     function createParticles() {
       const baseRadius = 6;
       const scaledRadius = baseRadius * (10 / batchSize); // Fewer particles = bigger radius
-
+    
       for (let i = 0; i < batchSize; i++) {
-        // LEFT beam particles start near left edge, moving right
-        particles.push({
-          x: scaledRadius + Math.random() * 30, // near left edge + some randomness
-          y: bandTop() + Math.random() * (bandBottom() - bandTop()),
+        const verticalRange = bandBottom() - bandTop();
+    
+        // LEFT beam particle (moving right)
+        const leftParticle = {
+          x: scaledRadius + Math.random() * 30,
+          y: bandTop() + Math.random() * verticalRange,
           r: scaledRadius,
           vx: 5 + Math.random() * 2,
           vy: (Math.random() - 0.5) * 0.5,
           beam: "left",
-          color: selectedParticles.left.color,
-          name: selectedParticles.left.name || "Proton",
+          color: selectedParticles.left?.color || "blue",
+          name: selectedParticles.left?.name || "Proton",
           lifetime: 50,
           decayed: false,
           falling: false,
           fallSpeed: 0
-        });
-
-        // RIGHT beam particles start near right edge, moving left
-        particles.push({
-          x: canvas.width - scaledRadius - Math.random() * 30, // near right edge - some randomness
-          y: bandTop() + Math.random() * (bandBottom() - bandTop()),
+        };
+    
+        // RIGHT beam particle (moving left)
+        const rightParticle = {
+          x: canvas.width - scaledRadius - Math.random() * 30,
+          y: bandTop() + Math.random() * verticalRange,
           r: scaledRadius,
           vx: -5 - Math.random() * 2,
           vy: (Math.random() - 0.5) * 0.5,
           beam: "right",
-          color: selectedParticles.right.color,
-          name: selectedParticles.right.name || "Proton",
+          color: selectedParticles.right?.color || "red",
+          name: selectedParticles.right?.name || "Proton",
           lifetime: 1000,
           decayed: false,
           falling: false,
           fallSpeed: 0
-        });
+        };
+    
+        particles.push(leftParticle, rightParticle);
       }
     }
+
 
     function drawParticles() {
       for (let p of particles) {
@@ -521,30 +526,50 @@
         // Pause simulation: stop updating particles but keep canvas drawn
         running = false;
         startBtn.textContent = "⏵"; // Show play symbol
-        // DO NOT cancelAnimationFrame here, keep loop running to redraw paused frame
         stopSpawning(); // Stop spawning new particles
       } else {
         // Start simulation: resume particle movement
-        startBtn.textContent = "⏸"; // Show pause symbol
         running = true;
+        startBtn.textContent = "⏸"; // Show pause symbol
+    
+        // Only (re)create particles if there are none
+        if (particles.length === 0) {
+          createParticles();
+        }
+    
         if (!animationId) {
           animationId = requestAnimationFrame(loop);
         }
+    
         startSpawning();
       }
     });
+
     
     resetBtn.addEventListener("click", () => {
+      // Stop simulation
       running = false;
+    
+      // Stop any spawning logic
       stopSpawning();
+    
+      // Clear all particles and collisions
       particles.length = 0;
       collisions.length = 0;
+    
+      // Clear the canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (animationId) {
+    
+      // Cancel animation loop if running
+      if (animationId !== null) {
         cancelAnimationFrame(animationId);
         animationId = null;
       }
+    
+      // Reset start button text to play icon
+      startBtn.textContent = "⏵";
     });
+
 
     const particleModal = document.getElementById('particleModal');
     const beamSideLabel = document.getElementById('beamSideLabel');
