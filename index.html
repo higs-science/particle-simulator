@@ -517,21 +517,22 @@
     }    
 
     startBtn.addEventListener("click", () => {
-      if (!running) {
+      if (running) {
+        // If running, stop simulation
+        running = false;
+        startBtn.textContent = "⏵";
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+        stopSpawning();
+      } else {
+        // If stopped, start simulation
         startBtn.textContent = "⏸";
         running = true;
         createParticles();
         loop();
         startSpawning();
-      }
-    });
-
-    stopBtn.addEventListener("click", () => {
-      running = false;
-      stopSpawning();
-      if (animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
       }
     });
 
