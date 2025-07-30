@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Particle Collider Simulator</title>
+  <meta charset="UTF-8" />
+  <title>2D Particle Collider</title>
   <style>
     body {
       margin: 0;
       overflow: hidden;
-      font-family: sans-serif;
-      background-color: #111;
+      background: #000;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     canvas {
       display: block;
@@ -16,107 +17,493 @@
     }
     #controls {
       position: absolute;
-      top: 10px;
-      left: 10px;
+      top: 15px;
+      left: 15px;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: rgba(20, 20, 30, 0.85);
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(100, 150, 255, 0.2);
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: linear-gradient(145deg, #1e3a8a, #2563eb);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    button:hover {
+      background: linear-gradient(145deg, #2563eb, #3b82f6);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    }
+    button:active {
+      transform: translateY(1px);
+    }
+    #resetBtn {
+      background: linear-gradient(145deg, #1f2937, #374151);
+    }
+    #resetBtn:hover {
+      background: linear-gradient(145deg, #374151, #4b5563);
+    }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #e2e8f0;
+      font-size: 14px;
+      user-select: none;
+    }
+    .slider-container {
       display: flex;
       align-items: center;
       gap: 10px;
-      z-index: 2;
+      background: rgba(240, 240, 240, 0.9);
+      padding: 8px 15px;
+      border-radius: 20px;
+      position: relative;
+      height: 36px;
     }
-    button, select {
-      font-size: 16px;
-      padding: 6px 10px;
-      background: #222;
-      color: white;
-      border: 1px solid #444;
-      border-radius: 4px;
+    .slider-label {
+      color: #333;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 120px;
+      height: 6px;
+      border-radius: 3px;
+      background: #ddd;
+      outline: none;
+      position: relative;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #10b981;
       cursor: pointer;
+      box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
     }
-    #particleSelectors {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      display: flex;
-      gap: 20px;
-      z-index: 2;
+    input[type="range"]::-webkit-slider-runnable-track {
+      background: linear-gradient(to right, #10b981 0%, #10b981 var(--value, 0%), #ddd var(--value, 0%), #ddd 100%);
+      border-radius: 3px;
+      height: 6px;
     }
-    .particleSelector {
+    input[type="number"] {
+      width: 60px;
+      padding: 5px;
+      background: rgba(30, 30, 50, 0.8);
+      border: 1px solid #4f46e5;
+      border-radius: 4px;
+      color: white;
+    }
+    #particleModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 15, 30, 0.95);
+      border: 2px solid #4f46e5;
+      border-radius: 15px;
+      padding: 25px;
+      display: none;
+      z-index: 20;
+      color: white;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    #particleModal.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -45%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+    .grid-label {
+      font-family: Arial, sans-serif;
+      margin: 15px 0 10px;
+      color: #93c5fd;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 14px;
+    }
+    .particle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 15px 0;
+    }
+    .particle-button {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #4f46e5;
+      border-radius: 8px;
+      cursor: pointer;
+      background: rgba(30, 30, 50, 0.8);
+      transition: all 0.2s ease;
       display: flex;
       flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .particle-button:hover {
+      background: rgba(79, 70, 229, 0.3);
+      transform: translateY(-2px);
+    }
+    .particle-color {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .particle-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .beam-line {
+      position: absolute;
+      height: 2px;
+      background: rgba(100, 200, 255, 0.2);
+      z-index: 1;
+    }
+    #topBeam {
+      top: 25%;
+      left: 0;
+      width: 100%;
+    }
+    #bottomBeam {
+      top: 75%;
+      left: 0;
+      width: 100%;
+    }
+    .instructions-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      background: rgba(20, 20, 30, 0.85);
+      border: 1px solid rgba(100, 150, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none; /* Make it non-interactive */
+      opacity: 0; /* Make it invisible */
+    }
+    .instructions-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(10, 15, 30, 0.95);
+      border: 2px solid #4f46e5;
+      border-radius: 15px;
+      padding: 25px;
+      display: none;
+      z-index: 20;
       color: white;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    }
+    .instructions-modal.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    .instructions-modal h2 {
+      margin-top: 0;
+      color: #93c5fd;
+    }
+    .instructions-modal ul {
+      padding-left: 20px;
+    }
+    .instructions-modal li {
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .close-instructions {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      color: #ff6b6b;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    #leftParticleBtn, #rightParticleBtn {
+      position: absolute;
+      bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 15px;
+      z-index: 10;
+      background: rgba(20, 20, 30, 0.85);
+      border: 1px solid rgba(100, 150, 255, 0.2);
+      border-radius: 12px;
+      min-width: 160px;
+    }
+    #leftParticleBtn {
+      left: 20px;
+    }
+    #rightParticleBtn {
+      right: 20px;
+    }
+    .particle-preview {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: #f44336;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+    }
+    .particle-info {
+      text-align: center;
+      font-size: 12px;
+      color: #a0aec0;
+    }
+    .particle-info div {
+      margin: 2px 0;
+    }
+    #statsToggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      background: rgba(20, 20, 30, 0.85);
+      border: 1px solid rgba(100, 150, 255, 0.2);
+      border-radius: 8px;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+    }
+    #statsDisplay {
+      position: absolute;
+      top: 70px;
+      right: 20px;
+      z-index: 10;
+      background: rgba(20, 20, 30, 0.85);
+      border: 1px solid rgba(100, 150, 255, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      font-size: 14px;
+      color: #e2e8f0;
+      display: none;
+      min-width: 200px;
+    }
+    #statsDisplay.show {
+      display: block;
+    }
+    .stat-item {
+      margin: 5px 0;
+    }
+    .stat-value {
+      font-weight: bold;
+      color: #64b5f6;
     }
   </style>
 </head>
 <body>
-  <canvas id="canvas"></canvas>
-
+  <div class="beam-line" id="topBeam"></div>
+  <div class="beam-line" id="bottomBeam"></div>
+  
   <div id="controls">
-    <button id="startBtn">⏵</button>
-    <button id="resetBtn">⟳</button>
-  </div>
-
-  <div id="particleSelectors">
-    <div class="particleSelector">
-      <label for="leftParticle">Left Beam</label>
-      <select id="leftParticle">
-        <option value="Proton">Proton</option>
-        <option value="Electron">Electron</option>
-        <option value="Muon">Muon</option>
-      </select>
+    <button id="playPauseBtn">▶️</button>
+    <button id="resetBtn">Reset</button>
+    <button id="oneParticleBtn">1 Particle</button>
+    
+    <div class="slider-container">
+      <span class="slider-label">Time Scale:</span>
+      <input id="timeScaleInput" type="range" min="0.1" max="5" step="0.1" value="1" />
+      <span id="timeScaleValue">1.0</span>
     </div>
-    <div class="particleSelector">
-      <label for="rightParticle">Right Beam</label>
-      <select id="rightParticle">
-        <option value="Proton">Proton</option>
-        <option value="Electron">Electron</option>
-        <option value="Muon">Muon</option>
-      </select>
+    
+    <label for="particleCountInput">
+      Particle Count:
+      <input id="particleCountInput" type="number" min="1" max="10" value="4" />
+    </label>
+  </div>
+  
+  <button id="statsToggle">
+    <input type="checkbox" id="statsCheckbox">
+    <label for="statsCheckbox">Statistics</label>
+  </button>
+  
+  <div id="statsDisplay">
+    <div class="stat-item">Total Particles: <span id="totalParticles" class="stat-value">0</span></div>
+    <div class="stat-item">Protons: <span id="protonCount" class="stat-value">0</span></div>
+    <div class="stat-item">Electrons: <span id="electronCount" class="stat-value">0</span></div>
+    <div class="stat-item">Photons: <span id="photonCount" class="stat-value">0</span></div>
+    <div class="stat-item">Average Speed: <span id="avgSpeed" class="stat-value">0.0</span></div>
+    <div class="stat-item">Collisions: <span id="collisionCount" class="stat-value">0</span></div>
+  </div>
+  
+  <button class="instructions-btn" id="instructionsBtn">
+    <span>?</span> How to Use
+  </button>
+  
+  <div class="instructions-modal" id="instructionsModal">
+    <button class="close-instructions" id="closeInstructions">&times;</button>
+    <h2>How to Use</h2>
+    <ul>
+      <li>Select particle types for each beam</li>
+      <li>Click ▶️ to start particle generation</li>
+      <li>Click ⏸️ to pause all particles</li>
+      <li>Use "1 Particle" for single collision</li>
+      <li>Adjust time scale and particle count</li>
+    </ul>
+  </div>
+  
+  <button id="leftParticleBtn">
+    <div class="particle-preview" id="leftParticlePreview"></div>
+    <div class="particle-info">
+      <div id="leftParticleName">Proton</div>
+      <div id="leftParticleMass">Mass: 938.3 MeV</div>
+      <div id="leftParticleCharge">Charge: +1</div>
+      <div id="leftParticleLifetime">Lifetime: Stable</div>
+    </div>
+  </button>
+  
+  <button id="rightParticleBtn">
+    <div class="particle-preview" id="rightParticlePreview"></div>
+    <div class="particle-info">
+      <div id="rightParticleName">Anti-Proton</div>
+      <div id="rightParticleMass">Mass: 938.3 MeV</div>
+      <div id="rightParticleCharge">Charge: -1</div>
+      <div id="rightParticleLifetime">Lifetime: Stable</div>
+    </div>
+  </button>
+  
+  <div id="particleModal">
+    <div id="particleModalContent">
+      <h2>Select Particle Type</h2>
+      <p>Choose a particle for the <span id="beamSideLabel">left</span> beam:</p>
+      <div class="grid-label">Standard Model</div>
+      <div class="particle-grid" id="normalParticles"></div>
+      <div class="grid-label">Antimatter Counterparts</div>
+      <div class="particle-grid" id="antiParticles"></div>
+      <button id="closeParticleModal" style="width: 100%; margin-top: 15px;">Close</button>
     </div>
   </div>
-
+  
+  <canvas id="sim"></canvas>
+  
   <script>
-    const canvas = document.getElementById("canvas");
+  window.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("sim");
     const ctx = canvas.getContext("2d");
-
-    let particles = [];
-    let collisions = [];
-    let running = false;
-    let animationId = null;
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const oneParticleBtn = document.getElementById("oneParticleBtn");
+    const timeScaleInput = document.getElementById("timeScaleInput");
+    const timeScaleValue = document.getElementById("timeScaleValue");
+    const particleCountInput = document.getElementById("particleCountInput");
+    const instructionsBtn = document.getElementById("instructionsBtn");
+    const instructionsModal = document.getElementById("instructionsModal");
+    const closeInstructions = document.getElementById("closeInstructions");
+    const leftParticlePreview = document.getElementById("leftParticlePreview");
+    const rightParticlePreview = document.getElementById("rightParticlePreview");
+    const leftParticleName = document.getElementById("leftParticleName");
+    const rightParticleName = document.getElementById("rightParticleName");
+    const leftParticleMass = document.getElementById("leftParticleMass");
+    const rightParticleMass = document.getElementById("rightParticleMass");
+    const leftParticleCharge = document.getElementById("leftParticleCharge");
+    const rightParticleCharge = document.getElementById("rightParticleCharge");
+    const leftParticleLifetime = document.getElementById("leftParticleLifetime");
+    const rightParticleLifetime = document.getElementById("rightParticleLifetime");
+    const statsToggle = document.getElementById("statsToggle");
+    const statsCheckbox = document.getElementById("statsCheckbox");
+    const statsDisplay = document.getElementById("statsDisplay");
+    const totalParticles = document.getElementById("totalParticles");
+    const protonCount = document.getElementById("protonCount");
+    const electronCount = document.getElementById("electronCount");
+    const photonCount = document.getElementById("photonCount");
+    const avgSpeed = document.getElementById("avgSpeed");
+    const collisionCount = document.getElementById("collisionCount");
+    
+    let timeScale = 1;
+    let particleCount = 4;
     let spawnInterval = null;
-    let batchSize = 10;
-
-    const PARTICLE_TYPES = {
-      "Proton": { color: "red" },
-      "Electron": { color: "blue" },
-      "Muon": { color: "purple" }
-    };
-
-    const selectedParticles = {
-      left: { name: "Proton", color: "red" },
-      right: { name: "Proton", color: "red" }
-    };
-
+    let spawnIntervalId = null;
+    let collisionCounter = 0;
+    
+    // Update slider background
+    function updateSliderBackground() {
+      const value = (timeScaleInput.value - timeScaleInput.min) / (timeScaleInput.max - timeScaleInput.min) * 100;
+      timeScaleInput.style.setProperty('--value', value);
+    }
+    
+    timeScaleInput.addEventListener("input", () => {
+      timeScale = parseFloat(timeScaleInput.value) || 1;
+      timeScaleValue.textContent = timeScale.toFixed(1);
+      updateSliderBackground();
+      // Adjust spawn interval based on time scale
+      if (spawnIntervalId) {
+        clearInterval(spawnIntervalId);
+        spawnIntervalId = setInterval(createParticles, spawnInterval / timeScale);
+      }
+    });
+    
+    updateSliderBackground();
+    
+    particleCountInput.addEventListener("change", () => {
+      particleCount = parseInt(particleCountInput.value) || 4;
+      if (particleCount < 1) particleCount = 1;
+      if (particleCount > 10) particleCount = 10;
+      particleCountInput.value = particleCount;
+    });
+    
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
-
-    window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
-
-    function bandTop() {
-      return canvas.height / 4;
-    }
-
-    function bandBottom() {
-      return (canvas.height * 3) / 4;
-    }
-
+    window.addEventListener("resize", resizeCanvas);
+    
+    window.particles = [];
+    const particles = window.particles;
+    window.collisions = [];
+    let collisions = window.collisions;
+    let animationId = null;
+    let running = false;
+    
+    const bandTop = () => canvas.height * 0.25;
+    const bandBottom = () => canvas.height * 0.75;
+    const baseSpawnInterval = 750; // 750ms at timeScale = 1
+    spawnInterval = baseSpawnInterval;
+    
+    // Particle creation - batch particles
     function createParticles() {
       const baseRadius = 6;
-      const scaledRadius = baseRadius * (10 / batchSize);
-
-      for (let i = 0; i < batchSize; i++) {
+      const scaledRadius = baseRadius * (10 / particleCount);
+      
+      for (let i = 0; i < particleCount; i++) {
+        // LEFT beam particles
         particles.push({
           x: scaledRadius + Math.random() * 30,
           y: bandTop() + Math.random() * (bandBottom() - bandTop()),
@@ -125,13 +512,14 @@
           vy: (Math.random() - 0.5) * 0.5,
           beam: "left",
           color: selectedParticles.left.color,
-          name: selectedParticles.left.name,
-          lifetime: 50,
+          name: selectedParticles.left.name || "Proton",
+          lifetime: 1000,
           decayed: false,
-          falling: false,
-          fallSpeed: 0
+          decayProducts: [],
+          spawnTime: Date.now()
         });
-
+        
+        // RIGHT beam particles
         particles.push({
           x: canvas.width - scaledRadius - Math.random() * 30,
           y: bandTop() + Math.random() * (bandBottom() - bandTop()),
@@ -140,111 +528,885 @@
           vy: (Math.random() - 0.5) * 0.5,
           beam: "right",
           color: selectedParticles.right.color,
-          name: selectedParticles.right.name,
-          lifetime: 50,
+          name: selectedParticles.right.name || "Proton",
+          lifetime: 1000,
           decayed: false,
-          falling: false,
-          fallSpeed: 0
+          decayProducts: [],
+          spawnTime: Date.now()
         });
       }
     }
-
-    function updateParticles() {
-      particles = particles.filter(p => p.lifetime > 0);
-
-      for (let p of particles) {
-        if (!p.falling) {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.lifetime--;
-        } else {
-          p.y += p.fallSpeed;
-          p.fallSpeed += 0.2;
-        }
-
-        if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
-          p.lifetime = 0;
+    
+    // Create single particle pair
+    function createSingleParticlePair() {
+      const radius = 8;
+      
+      // LEFT beam particle
+      particles.push({
+        x: radius,
+        y: (bandTop() + bandBottom()) / 2,
+        r: radius,
+        vx: 8,
+        vy: 0,
+        beam: "left",
+        color: selectedParticles.left.color,
+        name: selectedParticles.left.name || "Proton",
+        lifetime: 1000,
+        decayed: false,
+        decayProducts: [],
+        spawnTime: Date.now()
+      });
+      
+      // RIGHT beam particle
+      particles.push({
+        x: canvas.width - radius,
+        y: (bandTop() + bandBottom()) / 2,
+        r: radius,
+        vx: -8,
+        vy: 0,
+        beam: "right",
+        color: selectedParticles.right.color,
+        name: selectedParticles.right.name || "Proton",
+        lifetime: 1000,
+        decayed: false,
+        decayProducts: [],
+        spawnTime: Date.now()
+      });
+      
+      // Ensure animation is running to show the particles
+      if (!running) {
+        if (!animationId) {
+          animationId = requestAnimationFrame(loop);
         }
       }
     }
-
+    
     function drawParticles() {
+      // Draw beam regions
+      ctx.fillStyle = "rgba(50, 50, 100, 0.1)";
+      ctx.fillRect(0, bandTop(), canvas.width, bandBottom() - bandTop());
+      
+      // Draw primary particles
       for (let p of particles) {
+        if (!p.decayed) {
+          // Draw particle glow
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 15;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          
+          // Draw particle core
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r * 0.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      
+      // Draw decay products with improved visuals
+      for (let p of particles) {
+        if (p.decayProducts && p.decayProducts.length > 0) {
+          for (let dp of p.decayProducts) {
+            if (dp.lifetime > 0) {
+              // Draw decay particle with trail effect
+              if (dp.trail) {
+                for (let i = 0; i < dp.trail.length; i++) {
+                  const point = dp.trail[i];
+                  const alpha = i / dp.trail.length;
+                  ctx.fillStyle = `rgba(${parseInt(dp.color.substr(1, 2), 16)}, ${parseInt(dp.color.substr(3, 2), 16)}, ${parseInt(dp.color.substr(5, 2), 16)}, ${alpha * 0.5})`;
+                  ctx.beginPath();
+                  ctx.arc(point.x, point.y, dp.r * alpha, 0, Math.PI * 2);
+                  ctx.fill();
+                }
+              }
+              
+              // Draw particle glow
+              ctx.shadowColor = dp.color;
+              ctx.shadowBlur = 10;
+              ctx.fillStyle = dp.color;
+              ctx.beginPath();
+              ctx.arc(dp.x, dp.y, dp.r, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.shadowBlur = 0;
+              
+              // Draw particle core
+              ctx.fillStyle = "#ffffff";
+              ctx.beginPath();
+              ctx.arc(dp.x, dp.y, dp.r * 0.3, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+      }
+      
+      // Draw collision flashes
+      const now = Date.now();
+      for (let i = collisions.length - 1; i >= 0; i--) {
+        const c = collisions[i];
+        const elapsed = now - c.time;
+        const duration = 400 / timeScale;
+        if (elapsed > duration) {
+          collisions.splice(i, 1);
+          continue;
+        }
+        const alpha = 1 - elapsed / duration;
+        
+        // Create radial gradient for flash
+        const gradient = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.r * 3);
+        gradient.addColorStop(0, `rgba(${c.color.r}, ${c.color.g}, ${c.color.b}, ${alpha})`);
+        gradient.addColorStop(1, `rgba(${c.color.r}, ${c.color.g}, ${c.color.b}, 0)`);
+        
+        ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
+        ctx.arc(c.x, c.y, c.r * 3, 0, Math.PI * 2);
         ctx.fill();
       }
     }
-
-    function drawBand() {
-      ctx.fillStyle = "rgba(255,255,255,0.1)";
-      ctx.fillRect(0, bandTop(), canvas.width, bandBottom() - bandTop());
+    
+    function updateParticles() {
+      // Move primary particles
+      for (let p of particles) {
+        if (!p.decayed) {
+          p.x += p.vx * timeScale;
+          p.y += p.vy * timeScale;
+          
+          // Bounce vertically inside the band limits
+          if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
+            p.vy *= -1;
+          }
+          
+          // Reduce lifetime
+          if (p.lifetime !== undefined && p.lifetime > 0) {
+            p.lifetime -= timeScale;
+            if (p.lifetime < 0) p.lifetime = 0;
+          }
+        }
+      }
+      
+      // Update decay products
+      for (let p of particles) {
+        if (p.decayProducts && p.decayProducts.length > 0) {
+          for (let dp of p.decayProducts) {
+            if (dp.lifetime > 0) {
+              // Update position
+              dp.x += dp.vx * timeScale;
+              dp.y += dp.vy * timeScale;
+              
+              // Add to trail if needed
+              if (dp.trail) {
+                dp.trail.push({x: dp.x, y: dp.y});
+                if (dp.trail.length > 10) {
+                  dp.trail.shift();
+                }
+              }
+              
+              // Reduce lifetime
+              dp.lifetime -= timeScale;
+              
+              // Add some gravity effect to decay products
+              dp.vy += 0.05 * timeScale;
+            }
+          }
+        }
+      }
+      
+      detectCollisions();
     }
-
+    
+    // Helper: map particle names to colors
+    function getColorForParticle(name) {
+      const colorMap = {
+        // Quarks
+        'Up Quark': '#ff6666',
+        'Anti-Up Quark': '#ffcccc',
+        'Down Quark': '#ff9966',
+        'Anti-Down Quark': '#ffcc99',
+        'Strange Quark': '#ccff66',
+        'Anti-Strange Quark': '#e6ffcc',
+        'Charm Quark': '#66ff66',
+        'Anti-Charm Quark': '#ccffcc',
+        'Bottom Quark': '#6666ff',
+        'Anti-Bottom Quark': '#ccccff',
+        'Top Quark': '#cc66ff',
+        'Anti-Top Quark': '#e6ccff',
+        
+        // Leptons
+        'Electron': '#4dabf7',
+        'Positron': '#ff9e58',
+        'Muon': '#51cf66',
+        'Anti-Muon': '#90e051',
+        'Tau': '#cc5de8',
+        'Anti-Tau': '#d0b0ff',
+        'Electron Neutrino': '#a0d2ff',
+        'Anti-Electron Neutrino': '#d0e0ff',
+        'Muon Neutrino': '#80b0d0',
+        'Anti-Muon Neutrino': '#b0c8e0',
+        'Tau Neutrino': '#404040',
+        'Anti-Tau Neutrino': '#606060',
+        
+        // Bosons
+        'Photon': '#ffffff',
+        'W Boson': '#ffff00',
+        'Anti-W Boson': '#ffcc00',
+        'Z Boson': '#66ff66',
+        'Gluon': '#ff6600',
+        'Graviton': '#8080ff',
+        
+        // Higgs
+        'Higgs Boson': '#ffccdd',
+        
+        // Composite particles
+        'Proton': '#ff6b6b',
+        'Anti-Proton': '#b33a3a',
+        'Neutron': '#ffff99',
+        'Anti-Neutron': '#cccc66',
+        'Pion': '#f0c0a0',
+        'Charged Pion': '#ff8ad4'
+      };
+      return colorMap[name] || '#ffffff';
+    }
+    
+    // Get particle properties
+    function getParticleProperties(name) {
+      const properties = {
+        // Quarks
+        'Up Quark': { mass: '~2.2 MeV', charge: '+2/3', lifetime: 'Bound/stable' },
+        'Anti-Up Quark': { mass: '~2.2 MeV', charge: '-2/3', lifetime: 'Bound/stable' },
+        'Down Quark': { mass: '~4.7 MeV', charge: '-1/3', lifetime: 'Bound/stable' },
+        'Anti-Down Quark': { mass: '~4.7 MeV', charge: '+1/3', lifetime: 'Bound/stable' },
+        'Strange Quark': { mass: '~96 MeV', charge: '-1/3', lifetime: '~10⁻¹⁰ s' },
+        'Anti-Strange Quark': { mass: '~96 MeV', charge: '+1/3', lifetime: '~10⁻¹⁰ s' },
+        'Charm Quark': { mass: '~1.27 GeV', charge: '+2/3', lifetime: '~10⁻¹³ s' },
+        'Anti-Charm Quark': { mass: '~1.27 GeV', charge: '-2/3', lifetime: '~10⁻¹³ s' },
+        'Bottom Quark': { mass: '~4.18 GeV', charge: '-1/3', lifetime: '~1.6×10⁻¹² s' },
+        'Anti-Bottom Quark': { mass: '~4.18 GeV', charge: '+1/3', lifetime: '~1.6×10⁻¹² s' },
+        'Top Quark': { mass: '~173 GeV', charge: '+2/3', lifetime: '~5×10⁻²⁵ s' },
+        'Anti-Top Quark': { mass: '~173 GeV', charge: '-2/3', lifetime: '~5×10⁻²⁵ s' },
+        
+        // Leptons
+        'Electron': { mass: '0.511 MeV', charge: '-1', lifetime: 'Stable' },
+        'Positron': { mass: '0.511 MeV', charge: '+1', lifetime: 'Stable (annihilates)' },
+        'Muon': { mass: '105.7 MeV', charge: '-1', lifetime: '2.2×10⁻⁶ s' },
+        'Anti-Muon': { mass: '105.7 MeV', charge: '+1', lifetime: '2.2×10⁻⁶ s' },
+        'Tau': { mass: '1776.86 MeV', charge: '-1', lifetime: '2.9×10⁻¹³ s' },
+        'Anti-Tau': { mass: '1776.86 MeV', charge: '+1', lifetime: '2.9×10⁻¹³ s' },
+        'Electron Neutrino': { mass: '< 2.2 eV', charge: '0', lifetime: 'Stable' },
+        'Anti-Electron Neutrino': { mass: '< 2.2 eV', charge: '0', lifetime: 'Stable' },
+        'Muon Neutrino': { mass: '< 0.17 MeV', charge: '0', lifetime: 'Stable' },
+        'Anti-Muon Neutrino': { mass: '< 0.17 MeV', charge: '0', lifetime: 'Stable' },
+        'Tau Neutrino': { mass: '< 18.2 MeV', charge: '0', lifetime: 'Stable' },
+        'Anti-Tau Neutrino': { mass: '< 18.2 MeV', charge: '0', lifetime: 'Stable' },
+        
+        // Bosons
+        'Photon': { mass: '0', charge: '0', lifetime: 'Stable' },
+        'W Boson': { mass: '~80.4 GeV', charge: '±1', lifetime: '~3×10⁻²⁵ s' },
+        'Anti-W Boson': { mass: '~80.4 GeV', charge: '∓1', lifetime: '~3×10⁻²⁵ s' },
+        'Z Boson': { mass: '~91.2 GeV', charge: '0', lifetime: '~3×10⁻²⁵ s' },
+        'Gluon': { mass: '0', charge: '0', lifetime: 'Stable (confined)' },
+        'Graviton': { mass: '0', charge: '0', lifetime: 'Unknown' },
+        
+        // Higgs
+        'Higgs Boson': { mass: '~125.1 GeV', charge: '0', lifetime: '~1.6×10⁻²² s' },
+        
+        // Composite particles
+        'Proton': { mass: '938.3 MeV', charge: '+1', lifetime: 'Stable' },
+        'Anti-Proton': { mass: '938.3 MeV', charge: '-1', lifetime: 'Stable' },
+        'Neutron': { mass: '939.6 MeV', charge: '0', lifetime: '881 s (free)' },
+        'Anti-Neutron': { mass: '939.6 MeV', charge: '0', lifetime: '881 s (free)' },
+        'Pion': { mass: '139.6 MeV', charge: '0', lifetime: '2.6×10⁻⁸ s' },
+        'Charged Pion': { mass: '139.6 MeV', charge: '±1', lifetime: '2.6×10⁻⁸ s' }
+      };
+      return properties[name] || { mass: 'Unknown', charge: 'Unknown', lifetime: 'Unknown' };
+    }
+    
+    // Decay sequence with improved visuals
+    function startDecaySequence(particle) {
+      if (particle.decayed) return;
+      particle.decayed = true;
+      
+      // Create decay products based on particle type
+      const decayProducts = generateDecayProducts(particle);
+      particle.decayProducts = [];
+      
+      // Create spray pattern from collision point
+      for (let i = 0; i < decayProducts.length; i++) {
+        const decayParticle = decayProducts[i];
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1 + Math.random() * 3;
+        
+        const decayProduct = {
+          x: particle.x,
+          y: particle.y,
+          r: particle.r * 0.6,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          color: getColorForParticle(decayParticle.name) || '#4dabf7',
+          name: decayParticle.name,
+          lifetime: decayParticle.lifetime || (100 + Math.random() * 200),
+          spawnTime: Date.now()
+        };
+        
+        // Add special effects based on particle type
+        if (decayParticle.name.includes("Photon")) {
+          decayProduct.lifetime = 50;
+        } else if (decayParticle.name.includes("Muon") || decayParticle.name.includes("Tau") || 
+                   decayParticle.name.includes("W") || decayParticle.name.includes("Z")) {
+          decayProduct.trail = [];
+        }
+        
+        particle.decayProducts.push(decayProduct);
+      }
+    }
+    
+    // Generate decay products based on particle type
+    function generateDecayProducts(particle) {
+      const name = particle.name;
+      
+      // Quarks (stable inside hadrons - simplified decay for simulation)
+      if (name === "Strange Quark") {
+        return [
+          {name: "Up Quark", lifetime: 150},
+          {name: "Electron", lifetime: 150},
+          {name: "Anti-Electron Neutrino", lifetime: 100}
+        ];
+      }
+      
+      if (name === "Charm Quark") {
+        return [
+          {name: "Strange Quark", lifetime: 150},
+          {name: "Positron", lifetime: 150},
+          {name: "Electron Neutrino", lifetime: 100}
+        ];
+      }
+      
+      if (name === "Bottom Quark") {
+        return [
+          {name: "Charm Quark", lifetime: 200},
+          {name: "Electron", lifetime: 150},
+          {name: "Anti-Electron Neutrino", lifetime: 100}
+        ];
+      }
+      
+      if (name === "Top Quark") {
+        return [
+          {name: "Bottom Quark", lifetime: 50},
+          {name: "Positron", lifetime: 50},
+          {name: "Electron Neutrino", lifetime: 50}
+        ];
+      }
+      
+      // Leptons
+      if (name === "Muon") {
+        return [
+          {name: "Electron", lifetime: 200},
+          {name: "Electron Neutrino", lifetime: 100},
+          {name: "Anti-Muon Neutrino", lifetime: 100}
+        ];
+      }
+      
+      if (name === "Anti-Muon") {
+        return [
+          {name: "Positron", lifetime: 200},
+          {name: "Anti-Electron Neutrino", lifetime: 100},
+          {name: "Muon Neutrino", lifetime: 100}
+        ];
+      }
+      
+      if (name === "Tau") {
+        const rand = Math.random();
+        if (rand < 0.5) {
+          return [
+            {name: "Muon", lifetime: 100},
+            {name: "Muon Neutrino", lifetime: 80},
+            {name: "Anti-Tau Neutrino", lifetime: 80}
+          ];
+        } else {
+          return [
+            {name: "Electron", lifetime: 100},
+            {name: "Electron Neutrino", lifetime: 80},
+            {name: "Anti-Tau Neutrino", lifetime: 80}
+          ];
+        }
+      }
+      
+      if (name === "Anti-Tau") {
+        const rand = Math.random();
+        if (rand < 0.5) {
+          return [
+            {name: "Anti-Muon", lifetime: 100},
+            {name: "Anti-Muon Neutrino", lifetime: 80},
+            {name: "Tau Neutrino", lifetime: 80}
+          ];
+        } else {
+          return [
+            {name: "Positron", lifetime: 100},
+            {name: "Anti-Electron Neutrino", lifetime: 80},
+            {name: "Tau Neutrino", lifetime: 80}
+          ];
+        }
+      }
+      
+      // Bosons
+      if (name === "W Boson") {
+        return [
+          {name: "Positron", lifetime: 50},
+          {name: "Electron Neutrino", lifetime: 50}
+        ];
+      }
+      
+      if (name === "Anti-W Boson") {
+        return [
+          {name: "Electron", lifetime: 50},
+          {name: "Anti-Electron Neutrino", lifetime: 50}
+        ];
+      }
+      
+      if (name === "Z Boson") {
+        const rand = Math.random();
+        if (rand < 0.33) {
+          return [
+            {name: "Electron", lifetime: 50},
+            {name: "Positron", lifetime: 50}
+          ];
+        } else if (rand < 0.66) {
+          return [
+            {name: "Muon", lifetime: 50},
+            {name: "Anti-Muon", lifetime: 50}
+          ];
+        } else {
+          return [
+            {name: "Up Quark", lifetime: 50},
+            {name: "Anti-Up Quark", lifetime: 50}
+          ];
+        }
+      }
+      
+      if (name === "Higgs Boson") {
+        const rand = Math.random();
+        if (rand < 0.25) {
+          return [
+            {name: "Bottom Quark", lifetime: 100},
+            {name: "Anti-Bottom Quark", lifetime: 100}
+          ];
+        } else if (rand < 0.5) {
+          return [
+            {name: "W Boson", lifetime: 100},
+            {name: "Anti-W Boson", lifetime: 100}
+          ];
+        } else if (rand < 0.75) {
+          return [
+            {name: "Tau", lifetime: 100},
+            {name: "Anti-Tau", lifetime: 100}
+          ];
+        } else {
+          return [
+            {name: "Z Boson", lifetime: 100},
+            {name: "Z Boson", lifetime: 100}
+          ];
+        }
+      }
+      
+      // Composite particles
+      if (name === "Proton" || name === "Anti-Proton") {
+        // Proton decay: 2-4 particles
+        const count = 2 + Math.floor(Math.random() * 3);
+        const products = [];
+        for (let i = 0; i < count; i++) {
+          const rand = Math.random();
+          if (rand < 0.3) {
+            products.push({name: "Pion", lifetime: 150});
+          } else if (rand < 0.5) {
+            products.push({name: "Charged Pion", lifetime: 150});
+          } else if (rand < 0.7) {
+            products.push({name: "Muon", lifetime: 200});
+          } else if (rand < 0.9) {
+            products.push({name: "Electron Neutrino", lifetime: 100});
+          } else {
+            products.push({name: "Photon", lifetime: 50});
+          }
+        }
+        return products;
+      }
+      
+      if ((name === "Electron" && particle.beam === "left") && 
+          (particles.find(p => p.name === "Positron" && p.beam === "right" && !p.decayed))) {
+        // Electron + Positron annihilation
+        return [
+          {name: "Photon", lifetime: 30},
+          {name: "Photon", lifetime: 30}
+        ];
+      }
+      
+      if ((name === "Positron" && particle.beam === "right") && 
+          (particles.find(p => p.name === "Electron" && p.beam === "left" && !p.decayed))) {
+        // Electron + Positron annihilation
+        return [
+          {name: "Photon", lifetime: 30},
+          {name: "Photon", lifetime: 30}
+        ];
+      }
+      
+      // Default decay
+      return [
+        {name: "Photon", lifetime: 50}
+      ];
+    }
+    
+    function detectCollisions() {
+      if (particles.length < 2) return;
+      
+      // Check for collisions between left and right beam particles
+      for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
+        if (p1.decayed || p1.beam !== "left") continue;
+        
+        for (let j = 0; j < particles.length; j++) {
+          const p2 = particles[j];
+          if (p2.decayed || p2.beam !== "right") continue;
+          
+          // Check if particles are close enough to collide
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          // Collision occurs when particles are within a certain distance
+          if (dist < 20) {
+            // Determine collision flash color based on particle types
+            let flashColor = {r: 255, g: 255, b: 200}; // Default white-yellow
+            
+            // Quark collisions
+            if (p1.name.includes("Quark") && p2.name.includes("Quark")) {
+              flashColor = {r: 255, g: 100, b: 100}; // Red spark
+            } 
+            // Lepton collisions
+            else if ((p1.name === "Electron" && p2.name === "Positron") || 
+                      (p1.name === "Positron" && p2.name === "Electron")) {
+              flashColor = {r: 200, g: 230, b: 255}; // White-blue
+            } else if (p1.name.includes("Muon") || p2.name.includes("Muon")) {
+              flashColor = {r: 150, g: 255, b: 150}; // Soft green
+            } else if (p1.name.includes("Tau") || p2.name.includes("Tau")) {
+              flashColor = {r: 200, g: 100, b: 255}; // Violet
+            }
+            // Boson collisions
+            else if (p1.name.includes("W") || p2.name.includes("W")) {
+              flashColor = {r: 255, g: 255, b: 0}; // Yellow
+            } else if (p1.name.includes("Z") || p2.name.includes("Z")) {
+              flashColor = {r: 100, g: 255, b: 100}; // Green
+            } else if (p1.name.includes("Higgs") || p2.name.includes("Higgs")) {
+              flashColor = {r: 255, g: 200, b: 220}; // Pink
+            }
+            // Proton/Neutron collisions
+            else if ((p1.name === "Proton" && p2.name === "Anti-Proton") || 
+                     (p1.name === "Anti-Proton" && p2.name === "Proton")) {
+              flashColor = {r: 255, g: 165, b: 0}; // Orange-yellow
+            }
+            
+            // Create collision flash
+            collisions.push({
+              x: (p1.x + p2.x) / 2,
+              y: (p1.y + p2.y) / 2,
+              r: 15,
+              time: Date.now(),
+              color: flashColor
+            });
+            
+            // Start decay sequences for both particles
+            startDecaySequence(p1);
+            startDecaySequence(p2);
+            
+            // Increment collision counter
+            collisionCounter++;
+          }
+        }
+      }
+    }
+    
+    function updateStats() {
+      // Count particles by type
+      let protonCountVal = 0;
+      let electronCountVal = 0;
+      let photonCountVal = 0;
+      let totalParticleCount = 0;
+      let speedSum = 0;
+      
+      for (let p of particles) {
+        if (!p.decayed) {
+          totalParticleCount++;
+          if (p.name === "Proton" || p.name === "Anti-Proton") protonCountVal++;
+          if (p.name === "Electron" || p.name === "Positron") electronCountVal++;
+          if (p.name === "Photon") photonCountVal++;
+          
+          // Calculate speed
+          const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+          speedSum += speed;
+        }
+        
+        // Count decay products
+        if (p.decayProducts) {
+          for (let dp of p.decayProducts) {
+            if (dp.lifetime > 0) {
+              totalParticleCount++;
+              if (dp.name === "Proton" || dp.name === "Anti-Proton") protonCountVal++;
+              if (dp.name === "Electron" || dp.name === "Positron") electronCountVal++;
+              if (dp.name === "Photon") photonCountVal++;
+              
+              // Calculate speed
+              const speed = Math.sqrt(dp.vx * dp.vx + dp.vy * dp.vy);
+              speedSum += speed;
+            }
+          }
+        }
+      }
+      
+      // Update stats display
+      totalParticles.textContent = totalParticleCount;
+      protonCount.textContent = protonCountVal;
+      electronCount.textContent = electronCountVal;
+      photonCount.textContent = photonCountVal;
+      collisionCount.textContent = collisionCounter;
+      
+      if (totalParticleCount > 0) {
+        avgSpeed.textContent = (speedSum / totalParticleCount).toFixed(2);
+      } else {
+        avgSpeed.textContent = "0.00";
+      }
+    }
+    
     function loop() {
+      if (!running && particles.length === 0) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawBand();
+      
       updateParticles();
       drawParticles();
-
+      
+      // Update stats if enabled
+      if (statsCheckbox.checked) {
+        updateStats();
+      }
+      
       animationId = requestAnimationFrame(loop);
     }
-
+    
     function startSpawning() {
-      if (spawnInterval) return;
-      spawnInterval = setInterval(createParticles, 1000);
+      if (spawnIntervalId) clearInterval(spawnIntervalId);
+      spawnIntervalId = setInterval(createParticles, spawnInterval / timeScale);
     }
-
+    
     function stopSpawning() {
-      clearInterval(spawnInterval);
-      spawnInterval = null;
+      if (spawnIntervalId) {
+        clearInterval(spawnIntervalId);
+        spawnIntervalId = null;
+      }
     }
-
-    // Button: Play / Pause
-    document.getElementById("startBtn").addEventListener("click", () => {
-      if (running) {
-        running = false;
-        stopSpawning();
-        document.getElementById("startBtn").textContent = "⏵";
-      } else {
+    
+    playPauseBtn.addEventListener("click", () => {
+      if (!running) {
         running = true;
-        document.getElementById("startBtn").textContent = "⏸";
+        playPauseBtn.textContent = "⏸️";
         if (!animationId) {
           animationId = requestAnimationFrame(loop);
         }
         startSpawning();
+      } else {
+        running = false;
+        playPauseBtn.textContent = "▶️";
+        stopSpawning();
       }
     });
-
-    // Button: Reset
-    document.getElementById("resetBtn").addEventListener("click", () => {
+    
+    resetBtn.addEventListener("click", () => {
       running = false;
+      playPauseBtn.textContent = "▶️";
       stopSpawning();
       particles.length = 0;
       collisions.length = 0;
+      collisionCounter = 0;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (animationId) {
         cancelAnimationFrame(animationId);
         animationId = null;
       }
     });
-
-    // Dropdowns: Particle Selectors
-    document.getElementById("leftParticle").addEventListener("change", (e) => {
-      const selected = e.target.value;
-      selectedParticles.left.name = selected;
-      selectedParticles.left.color = PARTICLE_TYPES[selected].color;
+    
+    oneParticleBtn.addEventListener("click", () => {
+      createSingleParticlePair();
     });
-
-    document.getElementById("rightParticle").addEventListener("change", (e) => {
-      const selected = e.target.value;
-      selectedParticles.right.name = selected;
-      selectedParticles.right.color = PARTICLE_TYPES[selected].color;
+    
+    // Instructions modal
+    instructionsBtn.addEventListener('click', () => {
+      instructionsModal.classList.add('show');
     });
-
-    // Start initial draw (paused state)
-    loop();
+    
+    closeInstructions.addEventListener('click', () => {
+      instructionsModal.classList.remove('show');
+    });
+    
+    // Stats toggle
+    statsToggle.addEventListener('click', () => {
+      statsCheckbox.checked = !statsCheckbox.checked;
+      if (statsCheckbox.checked) {
+        statsDisplay.classList.add('show');
+      } else {
+        statsDisplay.classList.remove('show');
+      }
+    });
+    
+    // Particle selection modal
+    const leftParticleBtn = document.getElementById('leftParticleBtn');
+    const rightParticleBtn = document.getElementById('rightParticleBtn');
+    const particleModal = document.getElementById('particleModal');
+    const beamSideLabel = document.getElementById('beamSideLabel');
+    const normalParticlesContainer = document.getElementById('normalParticles');
+    const antiParticlesContainer = document.getElementById('antiParticles');
+    const closeModalBtn = document.getElementById('closeParticleModal');
+    let selectingSide = 'left';
+    
+    let selectedParticles = {
+      left: { name: 'Proton', color: '#ff6b6b' },
+      right: { name: 'Anti-Proton', color: '#b33a3a' }
+    };
+    
+    // Update particle preview colors and text
+    function updateParticlePreviews() {
+      leftParticlePreview.style.backgroundColor = selectedParticles.left.color;
+      rightParticlePreview.style.backgroundColor = selectedParticles.right.color;
+      leftParticleName.textContent = selectedParticles.left.name;
+      rightParticleName.textContent = selectedParticles.right.name;
+      
+      const leftProps = getParticleProperties(selectedParticles.left.name);
+      leftParticleMass.textContent = `Mass: ${leftProps.mass}`;
+      leftParticleCharge.textContent = `Charge: ${leftProps.charge}`;
+      leftParticleLifetime.textContent = `Lifetime: ${leftProps.lifetime}`;
+      
+      const rightProps = getParticleProperties(selectedParticles.right.name);
+      rightParticleMass.textContent = `Mass: ${rightProps.mass}`;
+      rightParticleCharge.textContent = `Charge: ${rightProps.charge}`;
+      rightParticleLifetime.textContent = `Lifetime: ${rightProps.lifetime}`;
+    }
+    
+    updateParticlePreviews();
+    
+    const standardModelParticles = [
+      // Quarks
+      { name: 'Up Quark', color: '#ff6666' },
+      { name: 'Down Quark', color: '#ff9966' },
+      { name: 'Strange Quark', color: '#ccff66' },
+      { name: 'Charm Quark', color: '#66ff66' },
+      { name: 'Bottom Quark', color: '#6666ff' },
+      { name: 'Top Quark', color: '#cc66ff' },
+      
+      // Leptons
+      { name: 'Electron', color: '#4dabf7' },
+      { name: 'Muon', color: '#51cf66' },
+      { name: 'Tau', color: '#cc5de8' },
+      { name: 'Electron Neutrino', color: '#a0d2ff' },
+      
+      // Bosons
+      { name: 'Photon', color: '#ffffff' },
+      { name: 'W Boson', color: '#ffff00' },
+      { name: 'Z Boson', color: '#66ff66' },
+      { name: 'Higgs Boson', color: '#ffccdd' },
+      
+      // Composite
+      { name: 'Proton', color: '#ff6b6b' },
+      { name: 'Neutron', color: '#ffff99' }
+    ];
+    
+    function populateParticleGrid(grid, particles) {
+      grid.innerHTML = '';
+      particles.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'particle-button';
+        
+        const colorDot = document.createElement('span');
+        colorDot.className = 'particle-color';
+        colorDot.style.backgroundColor = p.color;
+        
+        const name = document.createElement('span');
+        name.className = 'particle-name';
+        name.textContent = p.name;
+        
+        btn.appendChild(colorDot);
+        btn.appendChild(name);
+        
+        btn.addEventListener('click', () => {
+          selectedParticles[selectingSide] = { name: p.name, color: p.color };
+          updateParticlePreviews();
+          particleModal.classList.remove('show');
+        });
+        
+        grid.appendChild(btn);
+      });
+    }
+    
+    leftParticleBtn.addEventListener('click', () => {
+      selectingSide = 'left';
+      beamSideLabel.textContent = 'left';
+      populateParticleGrid(normalParticlesContainer, standardModelParticles);
+      populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
+        name: 'Anti-' + p.name,
+        color: invertColor(p.color)
+      })));
+      particleModal.classList.add('show');
+    });
+    
+    rightParticleBtn.addEventListener('click', () => {
+      selectingSide = 'right';
+      beamSideLabel.textContent = 'right';
+      populateParticleGrid(normalParticlesContainer, standardModelParticles);
+      populateParticleGrid(antiParticlesContainer, standardModelParticles.map(p => ({
+        name: 'Anti-' + p.name,
+        color: invertColor(p.color)
+      })));
+      particleModal.classList.add('show');
+    });
+    
+    // Close modal when clicking the particle selection button again
+    leftParticleBtn.addEventListener('click', (e) => {
+      if (particleModal.classList.contains('show') && selectingSide === 'left') {
+        particleModal.classList.remove('show');
+        e.stopPropagation();
+      }
+    });
+    
+    rightParticleBtn.addEventListener('click', (e) => {
+      if (particleModal.classList.contains('show') && selectingSide === 'right') {
+        particleModal.classList.remove('show');
+        e.stopPropagation();
+      }
+    });
+    
+    closeModalBtn.addEventListener('click', () => {
+      particleModal.classList.remove('show');
+    });
+    
+    // Close modal when clicking outside
+    particleModal.addEventListener('click', (e) => {
+      if (e.target === particleModal) {
+        particleModal.classList.remove('show');
+      }
+    });
+    
+    // Utility to invert hex color
+    function invertColor(hex) {
+      if (!hex.startsWith('#')) return hex;
+      let c = hex.substring(1);
+      if (c.length === 3) {
+        c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+      }
+      let num = parseInt(c, 16);
+      let r = 255 - ((num >> 16) & 255);
+      let g = 255 - ((num >> 8) & 255);
+      let b = 255 - (num & 255);
+      return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+    
+    // Start the animation loop immediately to ensure canvas is ready
+    animationId = requestAnimationFrame(loop);
+  });
   </script>
 </body>
 </html>
