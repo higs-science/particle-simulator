@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1214,6 +1215,11 @@
         running = false;
         playPauseBtn.textContent = "▶️";
         stopSpawning();
+        // Cancel animation frame when paused
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
       }
     });
     
@@ -1364,21 +1370,6 @@
       particleModal.classList.add('show');
     });
     
-    // Close modal when clicking the particle selection button again
-    leftParticleBtn.addEventListener('click', (e) => {
-      if (particleModal.classList.contains('show') && selectingSide === 'left') {
-        particleModal.classList.remove('show');
-        e.stopPropagation();
-      }
-    });
-    
-    rightParticleBtn.addEventListener('click', (e) => {
-      if (particleModal.classList.contains('show') && selectingSide === 'right') {
-        particleModal.classList.remove('show');
-        e.stopPropagation();
-      }
-    });
-    
     closeModalBtn.addEventListener('click', () => {
       particleModal.classList.remove('show');
     });
@@ -1410,3 +1401,4 @@
   </script>
 </body>
 </html>
+```
