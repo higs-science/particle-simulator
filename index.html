@@ -358,6 +358,9 @@
     }
     .stat-item {
       margin: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .stat-value {
       font-weight: bold;
@@ -395,49 +398,170 @@
     #momentumToggle input {
       margin: 0;
     }
+    .view-toggle {
+      display: flex;
+      gap: 5px;
+      margin-left: 10px;
+    }
+    .view-toggle button {
+      padding: 3px 8px;
+      font-size: 12px;
+      background: rgba(79, 70, 229, 0.3);
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+    }
+    .view-toggle button.active {
+      background: #4f46e5;
+    }
+    .chart-view, .table-view {
+      margin-top: 10px;
+    }
+    .table-view {
+      display: none;
+    }
+    .table-view.show {
+      display: block;
+    }
+    .chart-view {
+      display: block;
+    }
+    .chart-view.hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="beam-line" id="topBeam"></div>
   <div class="beam-line" id="bottomBeam"></div>
-  
   <div id="controls">
     <button id="playPauseBtn">▶️</button>
     <button id="resetBtn">Reset</button>
     <button id="oneParticleBtn">1 Particle</button>
-    
     <div class="slider-container">
       <span class="slider-label">Time Scale:</span>
       <input id="timeScaleInput" type="range" min="0.1" max="5" step="0.1" value="1" />
       <span id="timeScaleValue">1.0</span>
     </div>
-    
     <label for="particleCountInput">
       Particle Count:
       <input id="particleCountInput" type="number" min="1" max="10" value="4" />
     </label>
-    
     <label id="momentumToggle">
       <input type="checkbox" id="momentumCheckbox">
       <span>Show Momentum</span>
     </label>
   </div>
-  
   <button id="statsToggle">
     <input type="checkbox" id="statsCheckbox">
     <label for="statsCheckbox">Statistics</label>
   </button>
-  
   <div id="statsDisplay">
     <!-- Particle Overview -->
     <div class="stat-section">
       <div class="stat-section-title">📦 Particle Overview</div>
       <div class="stat-content">
-        <div class="stat-item">Total Particles: <span id="totalParticles" class="stat-value">0</span></div>
-        <div class="stat-item">Active / Decayed: <span id="activeDecayed" class="stat-value">0 / 0</span></div>
-        <div class="stat-item">From Beams: <span id="beamParticles" class="stat-value">0</span></div>
-        <div class="stat-item">From Decays: <span id="decayParticles" class="stat-value">0</span></div>
-        <div class="stat-item">Max Decay Chain: <span id="maxDecayChain" class="stat-value">0</span></div>
+        <div class="stat-item">
+          <span>Total Particles: <span id="totalParticles" class="stat-value">0</span></span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="totalParticles">Graph</button>
+            <button class="table-btn" data-metric="totalParticles">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="totalParticlesChart"></div>
+        <div class="table-view" id="totalParticlesTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="totalParticlesTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>Active / Decayed: <span id="activeDecayed" class="stat-value">0 / 0</span></span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="activeDecayed">Graph</button>
+            <button class="table-btn" data-metric="activeDecayed">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="activeDecayedChart"></div>
+        <div class="table-view" id="activeDecayedTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Active</th>
+                <th>Decayed</th>
+              </tr>
+            </thead>
+            <tbody id="activeDecayedTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>From Beams: <span id="beamParticles" class="stat-value">0</span></span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="beamParticles">Graph</button>
+            <button class="table-btn" data-metric="beamParticles">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="beamParticlesChart"></div>
+        <div class="table-view" id="beamParticlesTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="beamParticlesTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>From Decays: <span id="decayParticles" class="stat-value">0</span></span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="decayParticles">Graph</button>
+            <button class="table-btn" data-metric="decayParticles">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="decayParticlesChart"></div>
+        <div class="table-view" id="decayParticlesTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="decayParticlesTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>Max Decay Chain: <span id="maxDecayChain" class="stat-value">0</span></span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="maxDecayChain">Graph</button>
+            <button class="table-btn" data-metric="maxDecayChain">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="maxDecayChainChart"></div>
+        <div class="table-view" id="maxDecayChainTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="maxDecayChainTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
     
@@ -459,7 +583,26 @@
             </tr>
           </tbody>
         </table>
-        <div class="chart-container" id="compositionChart"></div>
+        <div class="stat-item">
+          <span>Composition</span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="composition">Graph</button>
+            <button class="table-btn" data-metric="composition">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="compositionChart"></div>
+        <div class="table-view" id="compositionTableContainer">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Type</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody id="compositionTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
     
@@ -493,7 +636,87 @@
             </tr>
           </tbody>
         </table>
-        <div class="chart-container" id="energyChart"></div>
+        <div class="stat-item">
+          <span>Avg Speed</span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="avgSpeed">Graph</button>
+            <button class="table-btn" data-metric="avgSpeed">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="avgSpeedChart"></div>
+        <div class="table-view" id="avgSpeedTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="avgSpeedTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>Avg Energy</span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="avgEnergy">Graph</button>
+            <button class="table-btn" data-metric="avgEnergy">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="avgEnergyChart"></div>
+        <div class="table-view" id="avgEnergyTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="avgEnergyTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>Max Energy</span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="maxEnergy">Graph</button>
+            <button class="table-btn" data-metric="maxEnergy">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="maxEnergyChart"></div>
+        <div class="table-view" id="maxEnergyTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+                <th>Particle</th>
+              </tr>
+            </thead>
+            <tbody id="maxEnergyTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>Min Energy</span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="minEnergy">Graph</button>
+            <button class="table-btn" data-metric="minEnergy">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="minEnergyChart"></div>
+        <div class="table-view" id="minEnergyTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+                <th>Particle</th>
+              </tr>
+            </thead>
+            <tbody id="minEnergyTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
     
@@ -523,7 +746,65 @@
             </tr>
           </tbody>
         </table>
-        <div class="chart-container" id="distanceChart"></div>
+        <div class="stat-item">
+          <span>Total Distance</span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="totalDistance">Graph</button>
+            <button class="table-btn" data-metric="totalDistance">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="totalDistanceChart"></div>
+        <div class="table-view" id="totalDistanceTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="totalDistanceTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>Avg Distance</span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="avgDistance">Graph</button>
+            <button class="table-btn" data-metric="avgDistance">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="avgDistanceChart"></div>
+        <div class="table-view" id="avgDistanceTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="avgDistanceTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>Avg Lifetime</span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="avgLifetime">Graph</button>
+            <button class="table-btn" data-metric="avgLifetime">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="avgLifetimeChart"></div>
+        <div class="table-view" id="avgLifetimeTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="avgLifetimeTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
     
@@ -552,9 +833,68 @@
             </tr>
           </tbody>
         </table>
-        <div class="chart-container" id="eventChart"></div>
-        <div class="stat-item">Top 3 Decays:</div>
-        <div id="topDecays" class="stat-value">None</div>
+        <div class="stat-item">
+          <span>Collisions</span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="collisions">Graph</button>
+            <button class="table-btn" data-metric="collisions">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="collisionsChart"></div>
+        <div class="table-view" id="collisionsTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Count</th>
+                <th>Rate</th>
+              </tr>
+            </thead>
+            <tbody id="collisionsTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>Decays</span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="decays">Graph</button>
+            <button class="table-btn" data-metric="decays">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="decaysChart"></div>
+        <div class="table-view" id="decaysTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Count</th>
+                <th>Rate</th>
+              </tr>
+            </thead>
+            <tbody id="decaysTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>Top Decay: <span id="topDecays" class="stat-value">None</span></span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="topDecays">Graph</button>
+            <button class="table-btn" data-metric="topDecays">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="topDecaysChart"></div>
+        <div class="table-view" id="topDecaysTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Decay</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody id="topDecaysTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
     
@@ -562,17 +902,51 @@
     <div class="stat-section">
       <div class="stat-section-title">⚡ Beam vs Decay Energy</div>
       <div class="stat-content">
-        <div class="stat-item">Beam Energy: <span id="beamEnergy" class="stat-value">0.00</span></div>
-        <div class="stat-item">Decay Energy: <span id="decayEnergy" class="stat-value">0.00</span></div>
-        <div class="chart-container" id="energySplitChart"></div>
+        <div class="stat-item">
+          <span>Beam Energy: <span id="beamEnergy" class="stat-value">0.00</span></span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="beamEnergy">Graph</button>
+            <button class="table-btn" data-metric="beamEnergy">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="beamEnergyChart"></div>
+        <div class="table-view" id="beamEnergyTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="beamEnergyTableBody"></tbody>
+          </table>
+        </div>
+        
+        <div class="stat-item">
+          <span>Decay Energy: <span id="decayEnergy" class="stat-value">0.00</span></span>
+          <div class="view-toggle">
+            <button class="graph-btn" data-metric="decayEnergy">Graph</button>
+            <button class="table-btn" data-metric="decayEnergy">Table</button>
+          </div>
+        </div>
+        <div class="chart-view" id="decayEnergyChart"></div>
+        <div class="table-view" id="decayEnergyTable">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="decayEnergyTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-  
   <button class="instructions-btn" id="instructionsBtn">
     <span>?</span> How to Use
   </button>
-  
   <div class="instructions-modal" id="instructionsModal">
     <button class="close-instructions" id="closeInstructions">&times;</button>
     <h2>How to Use</h2>
@@ -584,7 +958,6 @@
       <li>Adjust time scale and particle count</li>
     </ul>
   </div>
-  
   <button id="leftParticleBtn">
     <div class="particle-preview" id="leftParticlePreview"></div>
     <div class="particle-info">
@@ -594,7 +967,6 @@
       <div id="leftParticleLifetime">Lifetime: Stable</div>
     </div>
   </button>
-  
   <button id="rightParticleBtn">
     <div class="particle-preview" id="rightParticlePreview"></div>
     <div class="particle-info">
@@ -604,7 +976,6 @@
       <div id="rightParticleLifetime">Lifetime: Stable</div>
     </div>
   </button>
-  
   <div id="particleModal">
     <div id="particleModalContent">
       <h2>Select Particle Type</h2>
@@ -616,9 +987,7 @@
       <button id="closeParticleModal" style="width: 100%; margin-top: 15px;">Close</button>
     </div>
   </div>
-  
   <canvas id="sim"></canvas>
-  
   <script>
   window.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("sim");
@@ -646,7 +1015,6 @@
     const statsCheckbox = document.getElementById("statsCheckbox");
     const statsDisplay = document.getElementById("statsDisplay");
     const momentumCheckbox = document.getElementById("momentumCheckbox");
-    
     // Stats elements
     const totalParticles = document.getElementById("totalParticles");
     const activeDecayed = document.getElementById("activeDecayed");
@@ -668,7 +1036,6 @@
     const topDecays = document.getElementById("topDecays");
     const beamEnergy = document.getElementById("beamEnergy");
     const decayEnergy = document.getElementById("decayEnergy");
-    
     let timeScale = 1;
     let particleCount = 4;
     let spawnInterval = null;
@@ -683,13 +1050,33 @@
     let recentDecayChain = "None"; // Most recent decay chain
     let totalSimulationTime = 0; // Total simulation time in seconds
     let lastFrameTime = Date.now(); // For calculating deltaTime
-    
+    let simulationStartTime = Date.now(); // For tracking simulation time
+    // Data storage for charts and tables
+    let statsData = {
+      totalParticles: [],
+      activeDecayed: [],
+      beamParticles: [],
+      decayParticles: [],
+      maxDecayChain: [],
+      avgSpeed: [],
+      avgEnergy: [],
+      maxEnergy: [],
+      minEnergy: [],
+      totalDistance: [],
+      avgDistance: [],
+      avgLifetime: [],
+      collisions: [],
+      decays: [],
+      beamEnergy: [],
+      decayEnergy: [],
+      composition: [],
+      topDecays: []
+    };
     // Update slider background
     function updateSliderBackground() {
       const value = (timeScaleInput.value - timeScaleInput.min) / (timeScaleInput.max - timeScaleInput.min) * 100;
       timeScaleInput.style.setProperty('--value', value);
     }
-    
     timeScaleInput.addEventListener("input", () => {
       timeScale = parseFloat(timeScaleInput.value) || 1;
       timeScaleValue.textContent = timeScale.toFixed(1);
@@ -700,40 +1087,33 @@
         spawnIntervalId = setInterval(createParticles, spawnInterval / timeScale);
       }
     });
-    
     updateSliderBackground();
-    
     particleCountInput.addEventListener("change", () => {
       particleCount = parseInt(particleCountInput.value) || 4;
       if (particleCount < 1) particleCount = 1;
       if (particleCount > 10) particleCount = 10;
       particleCountInput.value = particleCount;
     });
-    
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
-    
     window.particles = [];
     const particles = window.particles;
     window.collisions = [];
     let collisions = window.collisions;
     let animationId = null;
     let running = false;
-    
     const bandTop = () => canvas.height * 0.25;
     const bandBottom = () => canvas.height * 0.75;
     const baseSpawnInterval = 750; // 750ms at timeScale = 1
     spawnInterval = baseSpawnInterval;
-    
     // Particle creation - batch particles
     function createParticles() {
       const baseRadius = 6;
       const scaledRadius = baseRadius * (10 / particleCount);
-      
       for (let i = 0; i < particleCount; i++) {
         // LEFT beam particles
         particles.push({
@@ -753,7 +1133,6 @@
           decayChainLength: 0,
           distanceTraveled: 0 // Track distance traveled
         });
-        
         // RIGHT beam particles
         particles.push({
           x: canvas.width - scaledRadius - Math.random() * 30,
@@ -774,11 +1153,9 @@
         });
       }
     }
-    
     // Create single particle pair
     function createSingleParticlePair() {
       const radius = 8;
-      
       // LEFT beam particle
       particles.push({
         x: radius,
@@ -797,7 +1174,6 @@
         decayChainLength: 0,
         distanceTraveled: 0 // Track distance traveled
       });
-      
       // RIGHT beam particle
       particles.push({
         x: canvas.width - radius,
@@ -816,7 +1192,6 @@
         decayChainLength: 0,
         distanceTraveled: 0 // Track distance traveled
       });
-      
       // Ensure animation is running to show the particles
       if (!running) {
         if (!animationId) {
@@ -824,7 +1199,6 @@
         }
       }
     }
-    
     // Draw momentum arrow for a particle
     function drawMomentumArrow(p) {
       const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
@@ -833,11 +1207,9 @@
         const scale = 5; // Scale factor for arrow length
         const arrowLength = Math.min(speed * scale, 30); // Cap arrow length
         const angle = Math.atan2(p.vy, p.vx);
-        
         // Arrow color based on particle type (matter vs antimatter)
         const isAntimatter = p.name.includes("Anti") || p.name.includes("anti");
         const color = isAntimatter ? 'purple' : 'hotpink';
-        
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -847,7 +1219,6 @@
           p.y + Math.sin(angle) * arrowLength
         );
         ctx.stroke();
-        
         // Draw arrowhead
         const headLength = 10;
         ctx.beginPath();
@@ -868,19 +1239,16 @@
         ctx.fill();
       }
     }
-    
     function drawParticles() {
       // Draw beam regions
       ctx.fillStyle = "rgba(50, 50, 100, 0.1)";
       ctx.fillRect(0, bandTop(), canvas.width, bandBottom() - bandTop());
-      
       // Draw primary particles
       for (let p of particles) {
         if (!p.decayed) {
           // Clamp minimum speed to prevent particles from moving too slowly
           if (Math.abs(p.vx) < 0.5) p.vx = 0.5 * Math.sign(p.vx || 1);
           if (Math.abs(p.vy) < 0.5) p.vy = 0.5 * Math.sign(p.vy || 1);
-          
           // Draw particle glow
           ctx.shadowColor = p.color;
           ctx.shadowBlur = 15;
@@ -889,20 +1257,17 @@
           ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
           ctx.fill();
           ctx.shadowBlur = 0;
-          
           // Draw particle core
           ctx.fillStyle = "#ffffff";
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.r * 0.4, 0, Math.PI * 2);
           ctx.fill();
-          
           // Draw momentum arrows if enabled
           if (momentumCheckbox.checked) {
             drawMomentumArrow(p);
           }
         }
       }
-      
       // Draw decay products with improved visuals
       for (let p of particles) {
         if (p.decayProducts && p.decayProducts.length > 0) {
@@ -911,7 +1276,6 @@
               // Clamp minimum speed
               if (Math.abs(dp.vx) < 0.5) dp.vx = 0.5 * Math.sign(dp.vx || 1);
               if (Math.abs(dp.vy) < 0.5) dp.vy = 0.5 * Math.sign(dp.vy || 1);
-              
               // Draw decay particle with trail effect
               if (dp.trail) {
                 for (let i = 0; i < dp.trail.length; i++) {
@@ -923,7 +1287,6 @@
                   ctx.fill();
                 }
               }
-              
               // Draw particle glow
               ctx.shadowColor = dp.color;
               ctx.shadowBlur = 10;
@@ -932,13 +1295,11 @@
               ctx.arc(dp.x, dp.y, dp.r, 0, Math.PI * 2);
               ctx.fill();
               ctx.shadowBlur = 0;
-              
               // Draw particle core
               ctx.fillStyle = "#ffffff";
               ctx.beginPath();
               ctx.arc(dp.x, dp.y, dp.r * 0.3, 0, Math.PI * 2);
               ctx.fill();
-              
               // Draw momentum arrows if enabled
               if (momentumCheckbox.checked) {
                 drawMomentumArrow(dp);
@@ -947,7 +1308,6 @@
           }
         }
       }
-      
       // Draw collision flashes
       const now = Date.now();
       for (let i = collisions.length - 1; i >= 0; i--) {
@@ -959,19 +1319,16 @@
           continue;
         }
         const alpha = 1 - elapsed / duration;
-        
         // Create radial gradient for flash
         const gradient = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.r * 3);
         gradient.addColorStop(0, `rgba(${c.color.r}, ${c.color.g}, ${c.color.b}, ${alpha})`);
         gradient.addColorStop(1, `rgba(${c.color.r}, ${c.color.g}, ${c.color.b}, 0)`);
-        
         ctx.fillStyle = gradient;
         ctx.beginPath();
         ctx.arc(c.x, c.y, c.r * 3, 0, Math.PI * 2);
         ctx.fill();
       }
     }
-    
     function updateParticles() {
       // Move primary particles and track distance
       for (let p of particles) {
@@ -979,21 +1336,17 @@
           // Clamp minimum speed
           if (Math.abs(p.vx) < 0.5) p.vx = 0.5 * Math.sign(p.vx || 1);
           if (Math.abs(p.vy) < 0.5) p.vy = 0.5 * Math.sign(p.vy || 1);
-          
           // Calculate distance traveled in this frame
           const dx = p.vx * timeScale;
           const dy = p.vy * timeScale;
           const distance = Math.sqrt(dx * dx + dy * dy);
           p.distanceTraveled += distance;
-          
           p.x += dx;
           p.y += dy;
-          
           // Bounce vertically inside the band limits
           if (p.y < bandTop() + p.r || p.y > bandBottom() - p.r) {
             p.vy *= -1;
           }
-          
           // Reduce lifetime
           if (p.lifetime !== undefined && p.lifetime > 0) {
             p.lifetime -= timeScale;
@@ -1001,7 +1354,6 @@
           }
         }
       }
-      
       // Update decay products
       for (let p of particles) {
         if (p.decayProducts && p.decayProducts.length > 0) {
@@ -1010,17 +1362,14 @@
               // Clamp minimum speed
               if (Math.abs(dp.vx) < 0.5) dp.vx = 0.5 * Math.sign(dp.vx || 1);
               if (Math.abs(dp.vy) < 0.5) dp.vy = 0.5 * Math.sign(dp.vy || 1);
-              
               // Calculate distance traveled in this frame
               const dx = dp.vx * timeScale;
               const dy = dp.vy * timeScale;
               const distance = Math.sqrt(dx * dx + dy * dy);
               dp.distanceTraveled = (dp.distanceTraveled || 0) + distance;
-              
               // Update position
               dp.x += dx;
               dp.y += dy;
-              
               // Add to trail if needed
               if (dp.trail) {
                 dp.trail.push({x: dp.x, y: dp.y});
@@ -1028,20 +1377,16 @@
                   dp.trail.shift();
                 }
               }
-              
               // Reduce lifetime
               dp.lifetime -= timeScale;
-              
               // Add some gravity effect to decay products
               dp.vy += 0.05 * timeScale;
             }
           }
         }
       }
-      
       detectCollisions();
     }
-    
     // Helper: map particle names to colors
     function getColorForParticle(name) {
       const colorMap = {
@@ -1058,7 +1403,6 @@
         'Anti-Bottom Quark': '#ccccff',
         'Top Quark': '#cc66ff',
         'Anti-Top Quark': '#e6ccff',
-        
         // Leptons
         'Electron': '#4dabf7',
         'Positron': '#ff9e58',
@@ -1072,7 +1416,6 @@
         'Anti-Muon Neutrino': '#b0c8e0',
         'Tau Neutrino': '#404040',
         'Anti-Tau Neutrino': '#606060',
-        
         // Bosons
         'Photon': '#ffffff',
         'W Boson': '#ffff00',
@@ -1080,10 +1423,8 @@
         'Z Boson': '#66ff66',
         'Gluon': '#ff6600',
         'Graviton': '#8080ff',
-        
         // Higgs
         'Higgs Boson': '#ffccdd',
-        
         // Composite particles
         'Proton': '#ff6b6b',
         'Anti-Proton': '#b33a3a',
@@ -1094,7 +1435,6 @@
       };
       return colorMap[name] || '#ffffff';
     }
-    
     // Get particle properties
     function getParticleProperties(name) {
       const properties = {
@@ -1111,7 +1451,6 @@
         'Anti-Bottom Quark': { mass: '~4.18 GeV', charge: '+1/3', lifetime: '~1.6×10⁻¹² s' },
         'Top Quark': { mass: '~173 GeV', charge: '+2/3', lifetime: '~5×10⁻²⁵ s' },
         'Anti-Top Quark': { mass: '~173 GeV', charge: '-2/3', lifetime: '~5×10⁻²⁵ s' },
-        
         // Leptons
         'Electron': { mass: '0.511 MeV', charge: '-1', lifetime: 'Stable' },
         'Positron': { mass: '0.511 MeV', charge: '+1', lifetime: 'Stable (annihilates)' },
@@ -1125,7 +1464,6 @@
         'Anti-Muon Neutrino': { mass: '< 0.17 MeV', charge: '0', lifetime: 'Stable' },
         'Tau Neutrino': { mass: '< 18.2 MeV', charge: '0', lifetime: 'Stable' },
         'Anti-Tau Neutrino': { mass: '< 18.2 MeV', charge: '0', lifetime: 'Stable' },
-        
         // Bosons
         'Photon': { mass: '0', charge: '0', lifetime: 'Stable' },
         'W Boson': { mass: '~80.4 GeV', charge: '±1', lifetime: '~3×10⁻²⁵ s' },
@@ -1133,10 +1471,8 @@
         'Z Boson': { mass: '~91.2 GeV', charge: '0', lifetime: '~3×10⁻²⁵ s' },
         'Gluon': { mass: '0', charge: '0', lifetime: 'Stable (confined)' },
         'Graviton': { mass: '0', charge: '0', lifetime: 'Unknown' },
-        
         // Higgs
         'Higgs Boson': { mass: '~125.1 GeV', charge: '0', lifetime: '~1.6×10⁻²² s' },
-        
         // Composite particles
         'Proton': { mass: '938.3 MeV', charge: '+1', lifetime: 'Stable' },
         'Anti-Proton': { mass: '938.3 MeV', charge: '-1', lifetime: 'Stable' },
@@ -1147,7 +1483,6 @@
       };
       return properties[name] || { mass: 'Unknown', charge: 'Unknown', lifetime: 'Unknown' };
     }
-    
     // Get mass value for calculations
     function getMassValue(name) {
       const masses = {
@@ -1171,13 +1506,11 @@
       };
       return masses[name] || 100; // Default mass
     }
-    
     // Decay sequence with improved visuals
     function startDecaySequence(particle) {
       if (particle.decayed) return;
       particle.decayed = true;
       decayCounter++;
-      
       // Log decay event
       const decayProducts = generateDecayProducts(particle);
       const decayString = `${particle.name} → ${decayProducts.map(p => p.name).join(" + ")}`;
@@ -1187,22 +1520,17 @@
         time: Date.now(),
         decayString: decayString
       });
-      
       // Update recent decay chain
       recentDecayChain = decayString;
-      
       particle.decayProducts = [];
-      
       // Record lifetime for average calculation
       const lifetime = (Date.now() - particle.spawnTime) / 1000; // in seconds
       particleLifetimes.push(lifetime);
-      
       // Create spray pattern from collision point
       for (let i = 0; i < decayProducts.length; i++) {
         const decayParticle = decayProducts[i];
         const angle = Math.random() * Math.PI * 2;
         const speed = 2 + Math.random() * 4; // Increased base speed
-        
         const decayProduct = {
           x: particle.x,
           y: particle.y,
@@ -1217,7 +1545,6 @@
           decayChainLength: particle.decayChainLength + 1,
           distanceTraveled: 0 // Track distance traveled
         };
-        
         // Add special effects based on particle type
         if (decayParticle.name.includes("Photon")) {
           decayProduct.lifetime = 50;
@@ -1225,15 +1552,12 @@
                    decayParticle.name.includes("W") || decayParticle.name.includes("Z")) {
           decayProduct.trail = [];
         }
-        
         particle.decayProducts.push(decayProduct);
       }
     }
-    
     // Generate decay products based on particle type
     function generateDecayProducts(particle) {
       const name = particle.name;
-      
       // Quarks (stable inside hadrons - simplified decay for simulation)
       if (name === "Strange Quark") {
         return [
@@ -1242,7 +1566,6 @@
           {name: "Anti-Electron Neutrino", lifetime: 100}
         ];
       }
-      
       if (name === "Charm Quark") {
         return [
           {name: "Strange Quark", lifetime: 150},
@@ -1250,7 +1573,6 @@
           {name: "Electron Neutrino", lifetime: 100}
         ];
       }
-      
       if (name === "Bottom Quark") {
         return [
           {name: "Charm Quark", lifetime: 200},
@@ -1258,7 +1580,6 @@
           {name: "Anti-Electron Neutrino", lifetime: 100}
         ];
       }
-      
       if (name === "Top Quark") {
         return [
           {name: "Bottom Quark", lifetime: 50},
@@ -1266,7 +1587,6 @@
           {name: "Electron Neutrino", lifetime: 50}
         ];
       }
-      
       // Leptons
       if (name === "Muon") {
         return [
@@ -1275,7 +1595,6 @@
           {name: "Anti-Muon Neutrino", lifetime: 100}
         ];
       }
-      
       if (name === "Anti-Muon") {
         return [
           {name: "Positron", lifetime: 200},
@@ -1283,7 +1602,6 @@
           {name: "Muon Neutrino", lifetime: 100}
         ];
       }
-      
       if (name === "Tau") {
         const rand = Math.random();
         if (rand < 0.5) {
@@ -1300,7 +1618,6 @@
           ];
         }
       }
-      
       if (name === "Anti-Tau") {
         const rand = Math.random();
         if (rand < 0.5) {
@@ -1317,7 +1634,6 @@
           ];
         }
       }
-      
       // Bosons
       if (name === "W Boson") {
         return [
@@ -1325,14 +1641,12 @@
           {name: "Electron Neutrino", lifetime: 50}
         ];
       }
-      
       if (name === "Anti-W Boson") {
         return [
           {name: "Electron", lifetime: 50},
           {name: "Anti-Electron Neutrino", lifetime: 50}
         ];
       }
-      
       if (name === "Z Boson") {
         const rand = Math.random();
         if (rand < 0.33) {
@@ -1352,7 +1666,6 @@
           ];
         }
       }
-      
       if (name === "Higgs Boson") {
         const rand = Math.random();
         if (rand < 0.25) {
@@ -1377,7 +1690,6 @@
           ];
         }
       }
-      
       // Composite particles
       if (name === "Proton" || name === "Anti-Proton") {
         // Proton decay: 2-4 particles
@@ -1399,7 +1711,6 @@
         }
         return products;
       }
-      
       if ((name === "Electron" && particle.beam === "left") && 
           (particles.find(p => p.name === "Positron" && p.beam === "right" && !p.decayed))) {
         // Electron + Positron annihilation
@@ -1408,7 +1719,6 @@
           {name: "Photon", lifetime: 30}
         ];
       }
-      
       if ((name === "Positron" && particle.beam === "right") && 
           (particles.find(p => p.name === "Electron" && p.beam === "left" && !p.decayed))) {
         // Electron + Positron annihilation
@@ -1417,35 +1727,28 @@
           {name: "Photon", lifetime: 30}
         ];
       }
-      
       // Default decay
       return [
         {name: "Photon", lifetime: 50}
       ];
     }
-    
     function detectCollisions() {
       if (particles.length < 2) return;
-      
       // Check for collisions between left and right beam particles
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
         if (p1.decayed || p1.beam !== "left") continue;
-        
         for (let j = 0; j < particles.length; j++) {
           const p2 = particles[j];
           if (p2.decayed || p2.beam !== "right") continue;
-          
           // Check if particles are close enough to collide
           const dx = p1.x - p2.x;
           const dy = p1.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          
           // Collision occurs when particles are within a certain distance
           if (dist < 20) {
             // Determine collision flash color based on particle types
             let flashColor = {r: 255, g: 255, b: 200}; // Default white-yellow
-            
             // Quark collisions
             if (p1.name.includes("Quark") && p2.name.includes("Quark")) {
               flashColor = {r: 255, g: 100, b: 100}; // Red spark
@@ -1472,7 +1775,6 @@
                      (p1.name === "Anti-Proton" && p2.name === "Proton")) {
               flashColor = {r: 255, g: 165, b: 0}; // Orange-yellow
             }
-            
             // Create collision flash
             collisions.push({
               x: (p1.x + p2.x) / 2,
@@ -1481,50 +1783,39 @@
               time: Date.now(),
               color: flashColor
             });
-            
             // Record collision time for rate calculation
             collisionTimes.push(Date.now());
-            
             // Start decay sequences for both particles
             startDecaySequence(p1);
             startDecaySequence(p2);
-            
             // Increment collision counter
             collisionCounter++;
           }
         }
       }
     }
-
     function drawSimpleBarChart(containerId, data, labels) {
       const container = document.getElementById(containerId);
       if (!container) return;
       container.innerHTML = ''; // Clear previous content
-    
       const maxWidth = container.clientWidth;
       const maxHeight = container.clientHeight;
       const barSpacing = 10;
       const maxBarWidth = (maxWidth - (labels.length + 1) * barSpacing) / labels.length;
       const barWidth = Math.min(maxBarWidth, 30); // Cap bar width
-    
       const maxValue = Math.max(...data, 1); // Avoid division by zero
-    
       // Create SVG namespace for elements
       const svgNS = "http://www.w3.org/2000/svg";
       const svg = document.createElementNS(svgNS, "svg");
       svg.setAttribute("width", "100%");
       svg.setAttribute("height", "100%");
       svg.setAttribute("viewBox", `0 0 ${maxWidth} ${maxHeight}`);
-    
       const startY = maxHeight - 10; // Base line for bars
-    
       labels.forEach((label, i) => {
         const value = data[i];
         const barHeight = (value / maxValue) * (maxHeight - 30); // Leave space for labels
-    
         const group = document.createElementNS(svgNS, "g");
         group.setAttribute("transform", `translate(${barSpacing + i * (barWidth + barSpacing)}, 0)`);
-    
         // Bar
         const rect = document.createElementNS(svgNS, "rect");
         rect.setAttribute("x", "0");
@@ -1533,7 +1824,6 @@
         rect.setAttribute("height", barHeight);
         rect.setAttribute("fill", `hsl(${i * 360 / labels.length}, 70%, 60%)`); // Color based on index
         group.appendChild(rect);
-    
         // Label (truncated if too long)
         const textLabel = document.createElementNS(svgNS, "text");
         textLabel.setAttribute("x", barWidth / 2);
@@ -1544,7 +1834,6 @@
         const displayLabel = label.length > 8 ? label.substring(0, 8) + "..." : label;
         textLabel.textContent = displayLabel;
         group.appendChild(textLabel);
-    
         // Value
         const textValue = document.createElementNS(svgNS, "text");
         textValue.setAttribute("x", barWidth / 2);
@@ -1554,20 +1843,16 @@
         textValue.setAttribute("fill", "white");
         textValue.textContent = value.toFixed(1);
         group.appendChild(textValue);
-    
         svg.appendChild(group);
       });
-    
       container.appendChild(svg);
     }
-    
-    function updateStats() {
+    function updateStatsData() {
       const now = Date.now();
       const elapsedSeconds = (now - lastStatsUpdate) / 1000;
       totalSimulationTime += elapsedSeconds;
-      
       // Count particles by type and origin
-      let typeCounts = {}; // Move declaration here
+      let typeCounts = {}; // Only declare once
       let protonCountVal = 0;
       let electronCountVal = 0;
       let photonCountVal = 0;
@@ -1588,28 +1873,20 @@
       let decayEnergySum = 0;
       let beamParticleCountForEnergy = 0;
       let decayParticleCountForEnergy = 0;
-      
-      // Type breakdown tracking
-      let typeCounts = {};
-      
       for (let p of particles) {
         if (!p.decayed) {
           activeParticleCount++;
           if (p.origin === "left" || p.origin === "right") beamParticleCount++;
           if (p.origin === "decay") decayParticleCount++;
-          
           if (p.name === "Proton" || p.name === "Anti-Proton") protonCountVal++;
           if (p.name === "Electron" || p.name === "Positron") electronCountVal++;
           if (p.name === "Photon") photonCountVal++;
-          
           // Track type breakdown
           typeCounts[p.name] = (typeCounts[p.name] || 0) + 1;
-          
           // Track max decay chain length
           if (p.decayChainLength > maxDecayChainLength) {
             maxDecayChainLength = p.decayChainLength;
           }
-          
           // Calculate speed and energy
           const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
           const mass = getMassValue(p.name);
@@ -1617,7 +1894,6 @@
           speedSum += speed;
           energySum += energy;
           totalDistanceTraveled += (p.distanceTraveled || 0);
-          
           // Track maximum and minimum energy particles
           if (energy > maxEnergyValue) {
             maxEnergyValue = energy;
@@ -1627,7 +1903,6 @@
             minEnergyValue = energy;
             minEnergyParticle = p.name;
           }
-          
           // Track energy by origin
           if (p.origin === "left" || p.origin === "right") {
             beamEnergySum += energy;
@@ -1639,7 +1914,6 @@
         } else {
           decayedParticleCount++;
         }
-        
         // Count decay products
         if (p.decayProducts) {
           for (let dp of p.decayProducts) {
@@ -1648,26 +1922,21 @@
               activeParticleCount++;
               decayParticleCount++;
               totalDistanceTraveled += (dp.distanceTraveled || 0);
-              
               if (dp.name === "Proton" || dp.name === "Anti-Proton") protonCountVal++;
               if (dp.name === "Electron" || dp.name === "Positron") electronCountVal++;
               if (dp.name === "Photon") photonCountVal++;
-              
               // Track type breakdown
               typeCounts[dp.name] = (typeCounts[dp.name] || 0) + 1;
-              
               // Track max decay chain length
               if (dp.decayChainLength > maxDecayChainLength) {
                 maxDecayChainLength = dp.decayChainLength;
               }
-              
               // Calculate speed and energy
               const speed = Math.sqrt(dp.vx * dp.vx + dp.vy * dp.vy);
               const mass = getMassValue(dp.name);
               const energy = 0.5 * mass * speed * speed;
               speedSum += speed;
               energySum += energy;
-              
               // Track maximum and minimum energy particles
               if (energy > maxEnergyValue) {
                 maxEnergyValue = energy;
@@ -1677,7 +1946,6 @@
                 minEnergyValue = energy;
                 minEnergyParticle = dp.name;
               }
-              
               // Track energy by origin
               decayEnergySum += energy;
               decayParticleCountForEnergy++;
@@ -1687,19 +1955,15 @@
           }
         }
       }
-      
       totalParticleCount = activeParticleCount + decayedParticleCount;
-      
       // Calculate type breakdown percentages
       let typeBreakdownText = "";
       if (activeParticleCount > 0) {
         // Sort types by count
         const sortedTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
-        
         // Get top 3 types
         const topTypes = sortedTypes.slice(0, 3);
         const otherCount = activeParticleCount - topTypes.reduce((sum, [, count]) => sum + count, 0);
-        
         // Format breakdown
         const breakdownParts = topTypes.map(([type, count]) => {
           const percentage = Math.round((count / activeParticleCount) * 100);
@@ -1707,23 +1971,19 @@
           const shortName = type.length > 10 ? type.substring(0, 10) + "..." : type;
           return `${shortName} ${percentage}%`;
         });
-        
         if (otherCount > 0) {
           const otherPercentage = Math.round((otherCount / activeParticleCount) * 100);
           breakdownParts.push(`Others ${otherPercentage}%`);
         }
-        
         typeBreakdownText = breakdownParts.join(", ");
       } else {
         typeBreakdownText = "None";
       }
-      
       // Find most common decay
       let decayCounts = {};
       for (let decay of decayLog) {
         decayCounts[decay.decayString] = (decayCounts[decay.decayString] || 0) + 1;
       }
-      
       let mostCommonDecay = "None";
       let maxCount = 0;
       for (let decay in decayCounts) {
@@ -1732,36 +1992,47 @@
           mostCommonDecay = decay;
         }
       }
-      
       // Calculate collision rate (collisions per second, last 5 seconds)
       const fiveSecondsAgo = now - 5000;
       collisionTimes = collisionTimes.filter(time => time > fiveSecondsAgo);
       const collisionRateValue = elapsedSeconds > 0 ? collisionTimes.length / 5 : 0;
-      
       // Calculate decay rate (decays per second)
       const decayRateValue = totalSimulationTime > 0 ? decayCounter / totalSimulationTime : 0;
-      
       // Calculate average lifetime of decayed particles
       let avgLifetimeValue = 0;
       if (particleLifetimes.length > 0) {
         const sum = particleLifetimes.reduce((a, b) => a + b, 0);
         avgLifetimeValue = sum / particleLifetimes.length;
       }
-      
       // Calculate average distance traveled
       const avgDistanceTraveled = totalParticleCount > 0 ? totalDistanceTraveled / totalParticleCount : 0;
-      
       // Calculate average energy by origin
       const avgBeamEnergy = beamParticleCountForEnergy > 0 ? beamEnergySum / beamParticleCountForEnergy : 0;
       const avgDecayEnergy = decayParticleCountForEnergy > 0 ? decayEnergySum / decayParticleCountForEnergy : 0;
-      
+      // Store data for charts and tables with simulation time
+      const currentTime = (now - simulationStartTime) / 1000; // Time in seconds since simulation start
+      statsData.totalParticles.push({time: currentTime, value: totalParticleCount});
+      statsData.activeDecayed.push({time: currentTime, active: activeParticleCount, decayed: decayedParticleCount});
+      statsData.beamParticles.push({time: currentTime, value: beamParticleCount});
+      statsData.decayParticles.push({time: currentTime, value: decayParticleCount});
+      statsData.maxDecayChain.push({time: currentTime, value: maxDecayChainLength});
+      statsData.avgSpeed.push({time: currentTime, value: totalParticleCount > 0 ? (speedSum / totalParticleCount) : 0});
+      statsData.avgEnergy.push({time: currentTime, value: totalParticleCount > 0 ? (energySum / totalParticleCount) : 0});
+      statsData.maxEnergy.push({time: currentTime, value: maxEnergyValue, particle: maxEnergyParticle});
+      statsData.minEnergy.push({time: currentTime, value: minEnergyValue, particle: minEnergyParticle});
+      statsData.totalDistance.push({time: currentTime, value: totalDistanceTraveled});
+      statsData.avgDistance.push({time: currentTime, value: avgDistanceTraveled});
+      statsData.avgLifetime.push({time: currentTime, value: avgLifetimeValue});
+      statsData.collisions.push({time: currentTime, count: collisionCounter, rate: collisionRateValue});
+      statsData.decays.push({time: currentTime, count: decayCounter, rate: decayRateValue});
+      statsData.beamEnergy.push({time: currentTime, value: avgBeamEnergy});
+      statsData.decayEnergy.push({time: currentTime, value: avgDecayEnergy});
       // Update stats display
       totalParticles.textContent = totalParticleCount;
       activeDecayed.textContent = `${activeParticleCount} / ${decayedParticleCount}`;
       beamParticles.textContent = beamParticleCount;
       decayParticles.textContent = decayParticleCount;
       maxDecayChain.textContent = maxDecayChainLength;
-      
       // Update composition table
       compositionTable.innerHTML = '';
       if (Object.keys(typeCounts).length > 0) {
@@ -1777,14 +2048,12 @@
         row.innerHTML = '<td colspan="3">No data</td>';
         compositionTable.appendChild(row);
       }
-      
       collisionCount.textContent = collisionCounter;
       collisionRate.textContent = collisionRateValue.toFixed(1);
       decayCount.textContent = decayCounter;
       decayRate.textContent = decayRateValue.toFixed(2);
       avgLifetime.textContent = avgLifetimeValue.toFixed(2);
       topDecays.textContent = mostCommonDecay;
-      
       if (totalParticleCount > 0) {
         avgSpeed.textContent = (speedSum / totalParticleCount).toFixed(2);
         avgEnergy.textContent = (energySum / totalParticleCount).toFixed(2);
@@ -1800,19 +2069,16 @@
         beamEnergy.textContent = "0.00";
         decayEnergy.textContent = "0.00";
       }
-      
       if (maxEnergyValue > 0) {
         maxEnergy.textContent = `${maxEnergyValue.toFixed(1)} (${maxEnergyParticle})`;
       } else {
         maxEnergy.textContent = "0.00 (None)";
       }
-      
       if (minEnergyValue !== Infinity && minEnergyValue > 0) {
         minEnergy.textContent = `${minEnergyValue.toFixed(1)} (${minEnergyParticle})`;
       } else {
         minEnergy.textContent = "0.00 (None)";
       }
-      
       lastStatsUpdate = now;
         // Draw charts
         // Composition Chart (assuming typeCounts is available - needs slight refactoring)
@@ -1823,55 +2089,214 @@
           const chartData = sortedTypesForChart.map(([, count]) => count);
           drawSimpleBarChart('compositionChart', chartData, chartLabels);
         }
-      
         // Energy Chart
         const energyData = [avgBeamEnergy, avgDecayEnergy];
         const energyLabels = ['Beam Avg', 'Decay Avg'];
         drawSimpleBarChart('energyChart', energyData, energyLabels);
-      
         // Distance Chart
         const distanceData = [totalDistanceTraveled, avgDistanceTraveled];
         const distanceLabels = ['Total Dist', 'Avg Dist'];
         drawSimpleBarChart('distanceChart', distanceData, distanceLabels);
-      
         // Event Chart
         const eventData = [collisionCounter, decayCounter];
         const eventLabels = ['Collisions', 'Decays'];
         drawSimpleBarChart('eventChart', eventData, eventLabels);
-      
         // Energy Split Chart
         const energySplitData = [avgBeamEnergy, avgDecayEnergy]; // Using averages for visibility
         const energySplitLabels = ['Beam Energy', 'Decay Energy'];
         drawSimpleBarChart('energySplitChart', energySplitData, energySplitLabels);
     }
-    
+    function updateStats() {
+      updateStatsData();
+      // Update all tables with latest data
+      updateTable('totalParticles', statsData.totalParticles, ['time', 'value']);
+      updateTable('activeDecayed', statsData.activeDecayed, ['time', 'active', 'decayed']);
+      updateTable('beamParticles', statsData.beamParticles, ['time', 'value']);
+      updateTable('decayParticles', statsData.decayParticles, ['time', 'value']);
+      updateTable('maxDecayChain', statsData.maxDecayChain, ['time', 'value']);
+      updateTable('avgSpeed', statsData.avgSpeed, ['time', 'value']);
+      updateTable('avgEnergy', statsData.avgEnergy, ['time', 'value']);
+      updateTable('maxEnergy', statsData.maxEnergy, ['time', 'value', 'particle']);
+      updateTable('minEnergy', statsData.minEnergy, ['time', 'value', 'particle']);
+      updateTable('totalDistance', statsData.totalDistance, ['time', 'value']);
+      updateTable('avgDistance', statsData.avgDistance, ['time', 'value']);
+      updateTable('avgLifetime', statsData.avgLifetime, ['time', 'value']);
+      updateTable('collisions', statsData.collisions, ['time', 'count', 'rate']);
+      updateTable('decays', statsData.decays, ['time', 'count', 'rate']);
+      updateTable('beamEnergy', statsData.beamEnergy, ['time', 'value']);
+      updateTable('decayEnergy', statsData.decayEnergy, ['time', 'value']);
+      // Update all charts
+      updateChart('totalParticles', statsData.totalParticles, 'value');
+      updateChart('activeDecayed', statsData.activeDecayed, ['active', 'decayed']);
+      updateChart('beamParticles', statsData.beamParticles, 'value');
+      updateChart('decayParticles', statsData.decayParticles, 'value');
+      updateChart('maxDecayChain', statsData.maxDecayChain, 'value');
+      updateChart('avgSpeed', statsData.avgSpeed, 'value');
+      updateChart('avgEnergy', statsData.avgEnergy, 'value');
+      updateChart('maxEnergy', statsData.maxEnergy, 'value');
+      updateChart('minEnergy', statsData.minEnergy, 'value');
+      updateChart('totalDistance', statsData.totalDistance, 'value');
+      updateChart('avgDistance', statsData.avgDistance, 'value');
+      updateChart('avgLifetime', statsData.avgLifetime, 'value');
+      updateChart('collisions', statsData.collisions, 'count');
+      updateChart('decays', statsData.decays, 'count');
+      updateChart('beamEnergy', statsData.beamEnergy, 'value');
+      updateChart('decayEnergy', statsData.decayEnergy, 'value');
+    }
+    function updateTable(section, data, columns) {
+      const tableBody = document.getElementById(`${section}TableBody`);
+      if (!tableBody) return;
+      
+      tableBody.innerHTML = '';
+      data.forEach(item => { // Show all data points
+        const row = document.createElement('tr');
+        columns.forEach(col => {
+          const cell = document.createElement('td');
+          cell.textContent = typeof item[col] === 'number' ? item[col].toFixed(2) : item[col];
+          row.appendChild(cell);
+        });
+        tableBody.appendChild(row);
+      });
+    }
+    function updateChart(section, data, valueKey) {
+      const chartContainer = document.getElementById(`${section}Chart`);
+      if (!chartContainer) return;
+      
+      // Clear previous chart
+      chartContainer.innerHTML = '';
+      
+      if (data.length === 0) return;
+      
+      // Create canvas for chart
+      const canvas = document.createElement('canvas');
+      canvas.width = chartContainer.clientWidth;
+      canvas.height = chartContainer.clientHeight;
+      chartContainer.appendChild(canvas);
+      
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      
+      // Extract values
+      let values;
+      if (Array.isArray(valueKey)) {
+        // For multi-value charts (like active/decayed)
+        values = valueKey.map(key => data.map(item => item[key]));
+      } else {
+        // For single-value charts
+        values = [data.map(item => item[valueKey])];
+      }
+      
+      // Extract times
+      const times = data.map(item => item.time);
+      
+      // Find min and max values
+      let allValues = [];
+      values.forEach(arr => allValues = allValues.concat(arr));
+      const minVal = Math.min(...allValues);
+      const maxVal = Math.max(...allValues);
+      const range = maxVal - minVal || 1; // Avoid division by zero
+      
+      // Find min and max times
+      const minTime = Math.min(...times);
+      const maxTime = Math.max(...times);
+      const timeRange = maxTime - minTime || 1; // Avoid division by zero
+      
+      // Draw chart
+      const padding = 10;
+      const chartWidth = width - 2 * padding;
+      const chartHeight = height - 2 * padding;
+      
+      // Draw grid
+      ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
+      ctx.beginPath();
+      for (let i = 0; i <= 5; i++) {
+        const y = padding + chartHeight - (i / 5) * chartHeight;
+        ctx.moveTo(padding, y);
+        ctx.lineTo(padding + chartWidth, y);
+      }
+      ctx.stroke();
+      
+      // Draw axes
+      ctx.strokeStyle = 'rgba(200, 200, 200, 0.7)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding, padding);
+      ctx.lineTo(padding, padding + chartHeight);
+      ctx.lineTo(padding + chartWidth, padding + chartHeight);
+      ctx.stroke();
+      
+      // Draw data lines
+      const colors = [
+        '#4dabf7', // Blue
+        '#ff6b6b', // Red
+        '#51cf66', // Green
+        '#fcc419', // Yellow
+        '#cc5de8'  // Purple
+      ];
+      
+      values.forEach((valueArray, idx) => {
+        if (valueArray.length < 2) return;
+        
+        ctx.strokeStyle = colors[idx % colors.length];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        valueArray.forEach((val, i) => {
+          const x = padding + ((times[i] - minTime) / timeRange) * chartWidth;
+          const y = padding + chartHeight - ((val - minVal) / range) * chartHeight;
+          
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        
+        ctx.stroke();
+      });
+      
+      // Draw labels
+      ctx.fillStyle = 'white';
+      ctx.font = '8px Arial';
+      ctx.textAlign = 'center';
+      
+      // Y-axis labels
+      for (let i = 0; i <= 5; i++) {
+        const val = minVal + (i / 5) * range;
+        const y = padding + chartHeight - (i / 5) * chartHeight;
+        ctx.fillText(val.toFixed(1), padding - 5, y + 3);
+      }
+      
+      // X-axis labels
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 5; i++) {
+        const time = minTime + (i / 5) * timeRange;
+        const x = padding + (i / 5) * chartWidth;
+        ctx.fillText(time.toFixed(1) + 's', x, padding + chartHeight + 15);
+      }
+    }
     function loop() {
       if (!running && particles.length === 0) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
       updateParticles();
       drawParticles();
-      
       // Update stats if enabled
       if (statsCheckbox.checked) {
         updateStats();
       }
-      
       animationId = requestAnimationFrame(loop);
     }
-    
     function startSpawning() {
       if (spawnIntervalId) clearInterval(spawnIntervalId);
       spawnIntervalId = setInterval(createParticles, spawnInterval / timeScale);
     }
-    
     function stopSpawning() {
       if (spawnIntervalId) {
         clearInterval(spawnIntervalId);
         spawnIntervalId = null;
       }
     }
-    
     playPauseBtn.addEventListener("click", () => {
       if (!running) {
         running = true;
@@ -1891,7 +2316,6 @@
         }
       }
     });
-    
     resetBtn.addEventListener("click", () => {
       running = false;
       playPauseBtn.textContent = "▶️";
@@ -1906,26 +2330,27 @@
       energyLostToDecay = 0;
       recentDecayChain = "None";
       totalSimulationTime = 0;
+      simulationStartTime = Date.now(); // Reset simulation start time
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (animationId) {
         cancelAnimationFrame(animationId);
         animationId = null;
       }
+      // Reset stats data
+      Object.keys(statsData).forEach(key => {
+        statsData[key] = [];
+      });
     });
-    
     oneParticleBtn.addEventListener("click", () => {
       createSingleParticlePair();
     });
-    
     // Instructions modal
     instructionsBtn.addEventListener('click', () => {
       instructionsModal.classList.add('show');
     });
-    
     closeInstructions.addEventListener('click', () => {
       instructionsModal.classList.remove('show');
     });
-    
     // Stats toggle - now works as a proper toggle
    statsToggle.addEventListener('click', () => {
       statsCheckbox.checked = !statsCheckbox.checked;
@@ -1942,7 +2367,6 @@
         statsDisplay.classList.remove('show');
       }
     });
-    
     // Add accordion functionality to stats sections
     document.querySelectorAll('.stat-section-title').forEach(title => {
       title.addEventListener('click', () => {
@@ -1951,7 +2375,31 @@
         content.classList.toggle('collapsed');
       });
     });
-    
+    // Add view toggle functionality
+    document.querySelectorAll('.view-toggle button').forEach(button => {
+      button.addEventListener('click', function() {
+        const metric = this.getAttribute('data-metric');
+        const isGraph = this.classList.contains('graph-btn');
+        
+        // Update button states
+        document.querySelectorAll(`.view-toggle button[data-metric="${metric}"]`).forEach(btn => {
+          btn.classList.remove('active');
+        });
+        this.classList.add('active');
+        
+        // Toggle views
+        const chartView = document.getElementById(`${metric}Chart`);
+        const tableView = document.getElementById(`${metric}Table`);
+        
+        if (isGraph) {
+          if (chartView) chartView.classList.remove('hidden');
+          if (tableView) tableView.classList.remove('show');
+        } else {
+          if (chartView) chartView.classList.add('hidden');
+          if (tableView) tableView.classList.add('show');
+        }
+      });
+    });
     // Particle selection modal
     const leftParticleBtn = document.getElementById('leftParticleBtn');
     const rightParticleBtn = document.getElementById('rightParticleBtn');
@@ -1961,32 +2409,26 @@
     const antiParticlesContainer = document.getElementById('antiParticles');
     const closeModalBtn = document.getElementById('closeParticleModal');
     let selectingSide = 'left';
-    
     let selectedParticles = {
       left: { name: 'Proton', color: '#ff6b6b' },
       right: { name: 'Anti-Proton', color: '#b33a3a' }
     };
-    
     // Update particle preview colors and text
     function updateParticlePreviews() {
       leftParticlePreview.style.backgroundColor = selectedParticles.left.color;
       rightParticlePreview.style.backgroundColor = selectedParticles.right.color;
       leftParticleName.textContent = selectedParticles.left.name;
       rightParticleName.textContent = selectedParticles.right.name;
-      
       const leftProps = getParticleProperties(selectedParticles.left.name);
       leftParticleMass.textContent = `Mass: ${leftProps.mass}`;
       leftParticleCharge.textContent = `Charge: ${leftProps.charge}`;
       leftParticleLifetime.textContent = `Lifetime: ${leftProps.lifetime}`;
-      
       const rightProps = getParticleProperties(selectedParticles.right.name);
       rightParticleMass.textContent = `Mass: ${rightProps.mass}`;
       rightParticleCharge.textContent = `Charge: ${rightProps.charge}`;
       rightParticleLifetime.textContent = `Lifetime: ${rightProps.lifetime}`;
     }
-    
     updateParticlePreviews();
-    
     const standardModelParticles = [
       // Quarks
       { name: 'Up Quark', color: '#ff6666' },
@@ -1995,58 +2437,47 @@
       { name: 'Charm Quark', color: '#66ff66' },
       { name: 'Bottom Quark', color: '#6666ff' },
       { name: 'Top Quark', color: '#cc66ff' },
-      
       // Leptons
       { name: 'Electron', color: '#4dabf7' },
       { name: 'Muon', color: '#51cf66' },
       { name: 'Tau', color: '#cc5de8' },
       { name: 'Electron Neutrino', color: '#a0d2ff' },
-      
       // Bosons
       { name: 'Photon', color: '#ffffff' },
       { name: 'W Boson', color: '#ffff00' },
       { name: 'Z Boson', color: '#66ff66' },
       { name: 'Higgs Boson', color: '#ffccdd' },
-      
       // Composite
       { name: 'Proton', color: '#ff6b6b' },
       { name: 'Neutron', color: '#ffff99' }
     ];
-    
     function populateParticleGrid(grid, particles) {
       grid.innerHTML = '';
       particles.forEach(p => {
         const btn = document.createElement('button');
         btn.className = 'particle-button';
-        
         const colorDot = document.createElement('span');
         colorDot.className = 'particle-color';
         colorDot.style.backgroundColor = p.color;
-        
         const name = document.createElement('span');
         name.className = 'particle-name';
         name.textContent = p.name;
-        
         btn.appendChild(colorDot);
         btn.appendChild(name);
-        
         btn.addEventListener('click', () => {
           selectedParticles[selectingSide] = { name: p.name, color: p.color };
           updateParticlePreviews();
           particleModal.classList.remove('show');
         });
-        
         grid.appendChild(btn);
       });
     }
-    
     leftParticleBtn.addEventListener('click', () => {
       // If modal is open and we click the same button, close it
       if (particleModal.classList.contains('show') && selectingSide === 'left') {
         particleModal.classList.remove('show');
         return;
       }
-      
       selectingSide = 'left';
       beamSideLabel.textContent = 'left';
       populateParticleGrid(normalParticlesContainer, standardModelParticles);
@@ -2056,14 +2487,12 @@
       })));
       particleModal.classList.add('show');
     });
-    
     rightParticleBtn.addEventListener('click', () => {
       // If modal is open and we click the same button, close it
       if (particleModal.classList.contains('show') && selectingSide === 'right') {
         particleModal.classList.remove('show');
         return;
       }
-      
       selectingSide = 'right';
       beamSideLabel.textContent = 'right';
       populateParticleGrid(normalParticlesContainer, standardModelParticles);
@@ -2073,18 +2502,15 @@
       })));
       particleModal.classList.add('show');
     });
-    
     closeModalBtn.addEventListener('click', () => {
       particleModal.classList.remove('show');
     });
-    
     // Close modal when clicking outside
     particleModal.addEventListener('click', (e) => {
       if (e.target === particleModal) {
         particleModal.classList.remove('show');
       }
     });
-    
     // Utility to invert hex color
     function invertColor(hex) {
       if (!hex.startsWith('#')) return hex;
@@ -2098,7 +2524,6 @@
       let b = 255 - (num & 255);
       return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     }
-    
     // Start the animation loop immediately to ensure canvas is ready
     animationId = requestAnimationFrame(loop);
   });
