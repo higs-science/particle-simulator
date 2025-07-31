@@ -1495,6 +1495,71 @@
         }
       }
     }
+
+    function drawSimpleBarChart(containerId, data, labels) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = ''; // Clear previous content
+    
+      const maxWidth = container.clientWidth;
+      const maxHeight = container.clientHeight;
+      const barSpacing = 10;
+      const maxBarWidth = (maxWidth - (labels.length + 1) * barSpacing) / labels.length;
+      const barWidth = Math.min(maxBarWidth, 30); // Cap bar width
+    
+      const maxValue = Math.max(...data, 1); // Avoid division by zero
+    
+      // Create SVG namespace for elements
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("width", "100%");
+      svg.setAttribute("height", "100%");
+      svg.setAttribute("viewBox", `0 0 ${maxWidth} ${maxHeight}`);
+    
+      const startY = maxHeight - 10; // Base line for bars
+    
+      labels.forEach((label, i) => {
+        const value = data[i];
+        const barHeight = (value / maxValue) * (maxHeight - 30); // Leave space for labels
+    
+        const group = document.createElementNS(svgNS, "g");
+        group.setAttribute("transform", `translate(${barSpacing + i * (barWidth + barSpacing)}, 0)`);
+    
+        // Bar
+        const rect = document.createElementNS(svgNS, "rect");
+        rect.setAttribute("x", "0");
+        rect.setAttribute("y", `${startY - barHeight}`);
+        rect.setAttribute("width", barWidth);
+        rect.setAttribute("height", barHeight);
+        rect.setAttribute("fill", `hsl(${i * 360 / labels.length}, 70%, 60%)`); // Color based on index
+        group.appendChild(rect);
+    
+        // Label (truncated if too long)
+        const textLabel = document.createElementNS(svgNS, "text");
+        textLabel.setAttribute("x", barWidth / 2);
+        textLabel.setAttribute("y", `${startY + 15}`);
+        textLabel.setAttribute("text-anchor", "middle");
+        textLabel.setAttribute("font-size", "8");
+        textLabel.setAttribute("fill", "white");
+        const displayLabel = label.length > 8 ? label.substring(0, 8) + "..." : label;
+        textLabel.textContent = displayLabel;
+        group.appendChild(textLabel);
+    
+        // Value
+        const textValue = document.createElementNS(svgNS, "text");
+        textValue.setAttribute("x", barWidth / 2);
+        textValue.setAttribute("y", `${startY - barHeight - 5}`);
+        textValue.setAttribute("text-anchor", "middle");
+        textValue.setAttribute("font-size", "8");
+        textValue.setAttribute("fill", "white");
+        textValue.textContent = value.toFixed(1);
+        group.appendChild(textValue);
+    
+        svg.appendChild(group);
+      });
+    
+      container.appendChild(svg);
+    }
     
     function updateStats() {
       const now = Date.now();
@@ -1502,6 +1567,7 @@
       totalSimulationTime += elapsedSeconds;
       
       // Count particles by type and origin
+      let typeCounts = {}; // Move declaration here
       let protonCountVal = 0;
       let electronCountVal = 0;
       let photonCountVal = 0;
@@ -1748,6 +1814,35 @@
       }
       
       lastStatsUpdate = now;
+        // Draw charts
+        // Composition Chart (assuming typeCounts is available - needs slight refactoring)
+        // For simplicity, we'll re-calculate top 5 types for the chart
+        if (Object.keys(typeCounts).length > 0) {
+          const sortedTypesForChart = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+          const chartLabels = sortedTypesForChart.map(([type]) => type);
+          const chartData = sortedTypesForChart.map(([, count]) => count);
+          drawSimpleBarChart('compositionChart', chartData, chartLabels);
+        }
+      
+        // Energy Chart
+        const energyData = [avgBeamEnergy, avgDecayEnergy];
+        const energyLabels = ['Beam Avg', 'Decay Avg'];
+        drawSimpleBarChart('energyChart', energyData, energyLabels);
+      
+        // Distance Chart
+        const distanceData = [totalDistanceTraveled, avgDistanceTraveled];
+        const distanceLabels = ['Total Dist', 'Avg Dist'];
+        drawSimpleBarChart('distanceChart', distanceData, distanceLabels);
+      
+        // Event Chart
+        const eventData = [collisionCounter, decayCounter];
+        const eventLabels = ['Collisions', 'Decays'];
+        drawSimpleBarChart('eventChart', eventData, eventLabels);
+      
+        // Energy Split Chart
+        const energySplitData = [avgBeamEnergy, avgDecayEnergy]; // Using averages for visibility
+        const energySplitLabels = ['Beam Energy', 'Decay Energy'];
+        drawSimpleBarChart('energySplitChart', energySplitData, energySplitLabels);
     }
     
     function loop() {
@@ -1832,10 +1927,17 @@
     });
     
     // Stats toggle - now works as a proper toggle
-    statsToggle.addEventListener('click', () => {
+   statsToggle.addEventListener('click', () => {
       statsCheckbox.checked = !statsCheckbox.checked;
       if (statsCheckbox.checked) {
         statsDisplay.classList.add('show');
+        // Collapse all stat sections when opening stats
+        document.querySelectorAll('.stat-section-title').forEach(title => {
+          title.classList.add('collapsed');
+        });
+        document.querySelectorAll('.stat-content').forEach(content => {
+          content.classList.add('collapsed');
+        });
       } else {
         statsDisplay.classList.remove('show');
       }
