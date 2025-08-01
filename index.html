@@ -415,21 +415,90 @@
     .view-toggle button.active {
       background: #4f46e5;
     }
-    .chart-view, .table-view {
-      margin-top: 10px;
-    }
     .table-view {
       display: none;
+      margin-top: 10px;
     }
     .table-view.show {
       display: block;
     }
-    .chart-view {
+    .table-view table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0;
+    }
+    .table-view th, .table-view td {
+      padding: 4px 6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .table-view th {
+      background: rgba(100, 150, 255, 0.2);
+      position: sticky;
+      top: 0;
+    }
+
+    /* --- Additions/Modifications for Floating Graph Window --- */
+    #floatingGraphWindow {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000; /* High z-index to be on top */
+      background: rgba(20, 20, 30, 0.95);
+      border: 2px solid rgba(100, 150, 255, 0.5);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      display: none; /* Hidden by default */
+      min-width: 400px;
+      max-width: 90vw; /* Responsive width */
+      cursor: move; /* Indicate it's draggable */
+      user-select: none; /* Prevent text selection while dragging */
+    }
+    #floatingGraphWindow.show {
       display: block;
     }
-    .chart-view.hidden {
-      display: none;
+    #floatingGraphHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      color: #64b5f6;
+      font-weight: bold;
+      cursor: move; /* Indicate header is draggable */
     }
+    #closeFloatingGraph {
+      background: none;
+      border: none;
+      color: #ff6b6b;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #floatingGraphTitle {
+      margin: 0;
+      font-size: 16px;
+      cursor: move; /* Indicate title is draggable */
+    }
+    #floatingGraphCanvasContainer {
+      height: 200px; /* Fixed height for the chart */
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    #floatingGraphCanvasContainer canvas {
+       width: 100%;
+       height: 100%;
+       display: block;
+    }
+    /* -------------------------- */
   </style>
 </head>
 <body>
@@ -469,7 +538,7 @@
             <button class="table-btn" data-metric="totalParticles">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="totalParticlesChart"></div>
+        <div class="chart-container" id="totalParticlesChart"></div>
         <div class="table-view" id="totalParticlesTable">
           <table>
             <thead>
@@ -489,7 +558,7 @@
             <button class="table-btn" data-metric="activeDecayed">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="activeDecayedChart"></div>
+        <div class="chart-container" id="activeDecayedChart"></div>
         <div class="table-view" id="activeDecayedTable">
           <table>
             <thead>
@@ -510,7 +579,7 @@
             <button class="table-btn" data-metric="beamParticles">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="beamParticlesChart"></div>
+        <div class="chart-container" id="beamParticlesChart"></div>
         <div class="table-view" id="beamParticlesTable">
           <table>
             <thead>
@@ -530,7 +599,7 @@
             <button class="table-btn" data-metric="decayParticles">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="decayParticlesChart"></div>
+        <div class="chart-container" id="decayParticlesChart"></div>
         <div class="table-view" id="decayParticlesTable">
           <table>
             <thead>
@@ -550,7 +619,7 @@
             <button class="table-btn" data-metric="maxDecayChain">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="maxDecayChainChart"></div>
+        <div class="chart-container" id="maxDecayChainChart"></div>
         <div class="table-view" id="maxDecayChainTable">
           <table>
             <thead>
@@ -590,7 +659,7 @@
             <button class="table-btn" data-metric="composition">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="compositionChart"></div>
+        <div class="chart-container" id="compositionChart"></div>
         <div class="table-view" id="compositionTableContainer">
           <table>
             <thead>
@@ -643,7 +712,7 @@
             <button class="table-btn" data-metric="avgSpeed">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="avgSpeedChart"></div>
+        <div class="chart-container" id="avgSpeedChart"></div>
         <div class="table-view" id="avgSpeedTable">
           <table>
             <thead>
@@ -663,7 +732,7 @@
             <button class="table-btn" data-metric="avgEnergy">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="avgEnergyChart"></div>
+        <div class="chart-container" id="avgEnergyChart"></div>
         <div class="table-view" id="avgEnergyTable">
           <table>
             <thead>
@@ -683,7 +752,7 @@
             <button class="table-btn" data-metric="maxEnergy">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="maxEnergyChart"></div>
+        <div class="chart-container" id="maxEnergyChart"></div>
         <div class="table-view" id="maxEnergyTable">
           <table>
             <thead>
@@ -704,7 +773,7 @@
             <button class="table-btn" data-metric="minEnergy">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="minEnergyChart"></div>
+        <div class="chart-container" id="minEnergyChart"></div>
         <div class="table-view" id="minEnergyTable">
           <table>
             <thead>
@@ -753,7 +822,7 @@
             <button class="table-btn" data-metric="totalDistance">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="totalDistanceChart"></div>
+        <div class="chart-container" id="totalDistanceChart"></div>
         <div class="table-view" id="totalDistanceTable">
           <table>
             <thead>
@@ -773,7 +842,7 @@
             <button class="table-btn" data-metric="avgDistance">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="avgDistanceChart"></div>
+        <div class="chart-container" id="avgDistanceChart"></div>
         <div class="table-view" id="avgDistanceTable">
           <table>
             <thead>
@@ -793,7 +862,7 @@
             <button class="table-btn" data-metric="avgLifetime">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="avgLifetimeChart"></div>
+        <div class="chart-container" id="avgLifetimeChart"></div>
         <div class="table-view" id="avgLifetimeTable">
           <table>
             <thead>
@@ -840,7 +909,7 @@
             <button class="table-btn" data-metric="collisions">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="collisionsChart"></div>
+        <div class="chart-container" id="collisionsChart"></div>
         <div class="table-view" id="collisionsTable">
           <table>
             <thead>
@@ -861,7 +930,7 @@
             <button class="table-btn" data-metric="decays">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="decaysChart"></div>
+        <div class="chart-container" id="decaysChart"></div>
         <div class="table-view" id="decaysTable">
           <table>
             <thead>
@@ -882,7 +951,7 @@
             <button class="table-btn" data-metric="topDecays">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="topDecaysChart"></div>
+        <div class="chart-container" id="topDecaysChart"></div>
         <div class="table-view" id="topDecaysTable">
           <table>
             <thead>
@@ -909,7 +978,7 @@
             <button class="table-btn" data-metric="beamEnergy">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="beamEnergyChart"></div>
+        <div class="chart-container" id="beamEnergyChart"></div>
         <div class="table-view" id="beamEnergyTable">
           <table>
             <thead>
@@ -929,7 +998,7 @@
             <button class="table-btn" data-metric="decayEnergy">Table</button>
           </div>
         </div>
-        <div class="chart-view" id="decayEnergyChart"></div>
+        <div class="chart-container" id="decayEnergyChart"></div>
         <div class="table-view" id="decayEnergyTable">
           <table>
             <thead>
@@ -987,6 +1056,16 @@
       <button id="closeParticleModal" style="width: 100%; margin-top: 15px;">Close</button>
     </div>
   </div>
+
+  <!-- Add the Floating Graph Window HTML -->
+  <div id="floatingGraphWindow">
+    <div id="floatingGraphHeader">
+      <h3 id="floatingGraphTitle">Metric Graph</h3>
+      <button id="closeFloatingGraph">&times;</button>
+    </div>
+    <div id="floatingGraphCanvasContainer"></div>
+  </div>
+
   <canvas id="sim"></canvas>
   <script>
   window.addEventListener("DOMContentLoaded", () => {
@@ -2009,8 +2088,8 @@
       // Calculate average energy by origin
       const avgBeamEnergy = beamParticleCountForEnergy > 0 ? beamEnergySum / beamParticleCountForEnergy : 0;
       const avgDecayEnergy = decayParticleCountForEnergy > 0 ? decayEnergySum / decayParticleCountForEnergy : 0;
-      // Store data for charts and tables with simulation time
-      const currentTime = (now - simulationStartTime) / 1000; // Time in seconds since simulation start
+      // Store data for charts and tables
+      const currentTime = totalSimulationTime; // Time in seconds since simulation start
       statsData.totalParticles.push({time: currentTime, value: totalParticleCount});
       statsData.activeDecayed.push({time: currentTime, active: activeParticleCount, decayed: decayedParticleCount});
       statsData.beamParticles.push({time: currentTime, value: beamParticleCount});
@@ -2148,7 +2227,7 @@
       if (!tableBody) return;
       
       tableBody.innerHTML = '';
-      data.forEach(item => { // Show all data points
+      data.slice(-10).forEach(item => { // Show last 10 entries
         const row = document.createElement('tr');
         columns.forEach(col => {
           const cell = document.createElement('td');
@@ -2187,9 +2266,6 @@
         values = [data.map(item => item[valueKey])];
       }
       
-      // Extract times
-      const times = data.map(item => item.time);
-      
       // Find min and max values
       let allValues = [];
       values.forEach(arr => allValues = allValues.concat(arr));
@@ -2198,6 +2274,7 @@
       const range = maxVal - minVal || 1; // Avoid division by zero
       
       // Find min and max times
+      const times = data.map(item => item.time);
       const minTime = Math.min(...times);
       const maxTime = Math.max(...times);
       const timeRange = maxTime - minTime || 1; // Avoid division by zero
@@ -2242,8 +2319,9 @@
         ctx.lineWidth = 2;
         ctx.beginPath();
         
+        const pointSpacing = chartWidth / (valueArray.length - 1);
         valueArray.forEach((val, i) => {
-          const x = padding + ((times[i] - minTime) / timeRange) * chartWidth;
+          const x = padding + i * pointSpacing;
           const y = padding + chartHeight - ((val - minVal) / range) * chartHeight;
           
           if (i === 0) {
@@ -2266,14 +2344,6 @@
         const val = minVal + (i / 5) * range;
         const y = padding + chartHeight - (i / 5) * chartHeight;
         ctx.fillText(val.toFixed(1), padding - 5, y + 3);
-      }
-      
-      // X-axis labels
-      ctx.textAlign = 'center';
-      for (let i = 0; i <= 5; i++) {
-        const time = minTime + (i / 5) * timeRange;
-        const x = padding + (i / 5) * chartWidth;
-        ctx.fillText(time.toFixed(1) + 's', x, padding + chartHeight + 15);
       }
     }
     function loop() {
@@ -2330,7 +2400,6 @@
       energyLostToDecay = 0;
       recentDecayChain = "None";
       totalSimulationTime = 0;
-      simulationStartTime = Date.now(); // Reset simulation start time
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       if (animationId) {
         cancelAnimationFrame(animationId);
@@ -2363,6 +2432,10 @@
         document.querySelectorAll('.stat-content').forEach(content => {
           content.classList.add('collapsed');
         });
+        // --- NEW: Close floating graph if it's open ---
+        if (floatingGraphWindow.classList.contains('show')) {
+            closeFloatingGraphWindow();
+        }
       } else {
         statsDisplay.classList.remove('show');
       }
@@ -2375,23 +2448,404 @@
         content.classList.toggle('collapsed');
       });
     });
+    
+    // --- Global Variables for Floating Graph ---
+    let currentFloatingGraphMetric = null;
+    let floatingGraphUpdateIntervalId = null; // For 1-second updates
+    const floatingGraphWindow = document.getElementById('floatingGraphWindow');
+    const floatingGraphHeader = document.getElementById('floatingGraphHeader'); // For dragging
+    const floatingGraphTitle = document.getElementById('floatingGraphTitle');
+    const floatingGraphCanvasContainer = document.getElementById('floatingGraphCanvasContainer');
+    const closeFloatingGraphBtn = document.getElementById('closeFloatingGraph');
+    
+    // --- Draggable Window Variables ---
+    let isDragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let originalX = 0;
+    let originalY = 0;
+
+    // --- Modify View Toggle Event Listener ---
+    document.addEventListener('click', function(event) {
+        // --- Handle clicks on graph buttons ---
+        if (event.target.matches('.view-toggle .graph-btn')) {
+            const metricKey = event.target.getAttribute('data-metric');
+            console.log("Floating Graph button clicked for metric:", metricKey);
+
+            // --- Toggle Logic for Floating Graph ---
+            if (currentFloatingGraphMetric === metricKey && floatingGraphWindow.classList.contains('show')) {
+                // Same graph button pressed and window is open -> Close it
+                console.log(`Closing floating graph for ${metricKey}`);
+                closeFloatingGraphWindow();
+            } else {
+                // Different graph button pressed or window is closed -> Open/show it
+                console.log(`Opening/switching floating graph for ${metricKey}`);
+                showFloatingGraphWindow(metricKey);
+                // Ensure stats panel closes if it was open
+                if (statsDisplay.classList.contains('show')) {
+                    statsCheckbox.checked = false;
+                    statsDisplay.classList.remove('show');
+                }
+            }
+        }
+        // --- Handle clicks on table buttons (optional) ---
+        else if (event.target.matches('.view-toggle .table-btn')) {
+             // Keep existing table button logic if needed
+             const metricKey = event.target.getAttribute('data-metric');
+             const chartView = document.getElementById(`${metricKey}Chart`);
+             const tableView = document.getElementById(`${metricKey}Table`);
+             
+             // Update button states
+             document.querySelectorAll(`.view-toggle button[data-target="${metricKey}"]`).forEach(btn => {
+               btn.classList.remove('active');
+             });
+             event.target.classList.add('active');
+             
+             // Toggle views
+             if (chartView) chartView.classList.add('hidden');
+             if (tableView) tableView.classList.add('show');
+        }
+    });
+
+    // --- Implement Floating Graph Window Functions ---
+
+    function showFloatingGraphWindow(metricKey) {
+        // Set the current metric
+        currentFloatingGraphMetric = metricKey;
+
+        // Update window title (optional: use a mapping for friendlier names)
+        const friendlyNames = {
+            'totalParticles': 'Total Particles',
+            'activeDecayed': 'Active / Decayed Particles',
+            'beamParticles': 'Particles from Beams',
+            'decayParticles': 'Particles from Decays',
+            'maxDecayChain': 'Maximum Decay Chain Length',
+            'avgSpeed': 'Average Speed',
+            'avgEnergy': 'Average Energy',
+            'maxEnergy': 'Maximum Energy',
+            'minEnergy': 'Minimum Energy',
+            'totalDistance': 'Total Distance Traveled',
+            'avgDistance': 'Average Distance Traveled',
+            'avgLifetime': 'Average Lifetime',
+            'collisions': 'Collisions',
+            'decays': 'Decays',
+            'beamEnergy': 'Beam Energy',
+            'decayEnergy': 'Decay Energy'
+            // Add more mappings as needed
+        };
+        floatingGraphTitle.textContent = friendlyNames[metricKey] || `Graph: ${metricKey}`;
+
+        // Show the window
+        floatingGraphWindow.classList.add('show');
+
+        // Draw the initial chart
+        drawFloatingChart(metricKey);
+
+        // --- Start 1-second update interval ---
+        if (floatingGraphUpdateIntervalId) {
+            clearInterval(floatingGraphUpdateIntervalId);
+        }
+        floatingGraphUpdateIntervalId = setInterval(() => {
+            if (floatingGraphWindow.classList.contains('show') && currentFloatingGraphMetric) {
+                drawFloatingChart(currentFloatingGraphMetric);
+            }
+        }, 1000); // Update every 1000ms (1 second)
+    }
+
+    function closeFloatingGraphWindow() {
+        floatingGraphWindow.classList.remove('show');
+        currentFloatingGraphMetric = null;
+        // Clear the canvas container
+        floatingGraphCanvasContainer.innerHTML = '';
+        
+        // --- Stop the update interval ---
+        if (floatingGraphUpdateIntervalId) {
+            clearInterval(floatingGraphUpdateIntervalId);
+            floatingGraphUpdateIntervalId = null;
+        }
+        
+        // --- Reset window position ---
+        floatingGraphWindow.style.left = '';
+        floatingGraphWindow.style.top = '';
+        floatingGraphWindow.style.bottom = '20px'; // Restore original bottom positioning
+        floatingGraphWindow.style.transform = 'translateX(-50%)'; // Restore centering
+    }
+
+    // Close window when clicking the close button
+    closeFloatingGraphBtn.addEventListener('click', closeFloatingGraphWindow);
+
+    // Close window when clicking outside of it (optional enhancement)
+    floatingGraphWindow.addEventListener('click', function(event) {
+        if (event.target === floatingGraphWindow) {
+             closeFloatingGraphWindow();
+        }
+    });
+
+    // --- Draggable Window Implementation ---
+    floatingGraphHeader.addEventListener('mousedown', function(e) {
+        // Only start dragging if clicked on the header/title, not buttons
+        if (e.target === floatingGraphHeader || e.target === floatingGraphTitle) {
+            isDragging = true;
+            
+            // Calculate offset relative to the window's current position
+            const rect = floatingGraphWindow.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+            
+            // Store original position styles
+            originalX = rect.left;
+            originalY = rect.top;
+            
+            // Remove bottom positioning to allow top/left manipulation
+            floatingGraphWindow.style.bottom = '';
+            floatingGraphWindow.style.transform = ''; // Remove translateX
+            
+            // Set initial position using top/left
+            floatingGraphWindow.style.left = `${originalX}px`;
+            floatingGraphWindow.style.top = `${originalY}px`;
+            
+            document.body.style.cursor = 'move';
+            e.preventDefault(); // Prevent text selection
+        }
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (isDragging) {
+            // Calculate new position
+            const newX = e.clientX - dragOffsetX;
+            const newY = e.clientY - dragOffsetY;
+            
+            // Apply new position
+            floatingGraphWindow.style.left = `${newX}px`;
+            floatingGraphWindow.style.top = `${newY}px`;
+        }
+    });
+
+    document.addEventListener('mouseup', function() {
+        isDragging = false;
+        document.body.style.cursor = '';
+    });
+
+    // --- Implement drawFloatingChart function ---
+    function drawFloatingChart(metricKey) {
+        const data = statsData[metricKey];
+        if (!data || data.length === 0) {
+            console.log(`No data available for floating chart ${metricKey}`);
+            // Clear canvas or show "No Data" message
+            floatingGraphCanvasContainer.innerHTML = '<div style="color:white; text-align:center; padding-top:90px;">No data yet...</div>';
+            return;
+        }
+
+        // Clear previous content
+        floatingGraphCanvasContainer.innerHTML = '';
+
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        floatingGraphCanvasContainer.appendChild(canvas);
+
+        const ctx = canvas.getContext('2d');
+        const containerWidth = floatingGraphCanvasContainer.clientWidth;
+        const containerHeight = floatingGraphCanvasContainer.clientHeight;
+
+        // Set canvas dimensions explicitly
+        canvas.width = containerWidth;
+        canvas.height = containerHeight;
+
+        // --- Determine value keys based on metric type ---
+        let valueKeys = [];
+        if (metricKey === 'activeDecayed') {
+            valueKeys = ['active', 'decayed'];
+        } else if (metricKey === 'collisions' || metricKey === 'decays') {
+            // For simplicity, plotting 'count'. Could plot 'rate' or use dual y-axis.
+            valueKeys = ['count'];
+        } else if (metricKey === 'maxEnergy' || metricKey === 'minEnergy') {
+             // Plot the value, ignore particle name for now in the graph
+            valueKeys = ['value'];
+        } else {
+            valueKeys = ['value']; // Default for single-value metrics
+        }
+
+        // --- Prepare data for plotting ---
+        const times = data.map(d => d.time);
+        const datasets = valueKeys.map((key, idx) => {
+            const values = data.map(d => d[key] !== undefined ? d[key] : d.value); // Fallback to 'value'
+            return { values: values, key: key };
+        });
+
+        // --- Find min/max for scaling ---
+        let allValues = [];
+        datasets.forEach(ds => allValues = allValues.concat(ds.values));
+        
+        // Protect against empty or constant data
+        const minValue = (allValues.length > 0) ? Math.min(...allValues) : 0;
+        const maxValue = (allValues.length > 0) ? Math.max(...allValues) : 1;
+        const valueRange = (maxValue - minValue) || 1; // Avoid division by zero if min == max
+
+        const minTime = (times.length > 0) ? Math.min(...times) : 0;
+        const maxTime = (times.length > 0) ? Math.max(...times) : 1;
+        const timeRange = (maxTime - minTime) || 1; // Avoid division by zero
+
+        // --- Drawing parameters ---
+        const padding = 40; // Increased padding for labels
+        const chartWidth = containerWidth - 2 * padding;
+        const chartHeight = containerHeight - 2 * padding;
+
+        // --- Clear canvas background ---
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, containerWidth, containerHeight);
+
+        // --- Draw grid lines ---
+        ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        // Horizontal grid lines (Y-axis) - e.g., 5 lines
+        const yGridLines = 5;
+        for (let i = 0; i <= yGridLines; i++) {
+            const y = padding + chartHeight - (i / yGridLines) * chartHeight;
+            ctx.moveTo(padding, y);
+            ctx.lineTo(padding + chartWidth, y);
+        }
+        // Vertical grid lines (X-axis) - e.g., based on number of data points or time
+        const maxPointsToShow = 10; // Limit grid lines for readability
+        const step = Math.max(1, Math.floor(times.length / maxPointsToShow));
+        for (let i = 0; i < times.length; i += step) {
+            const x = padding + ((times[i] - minTime) / timeRange) * chartWidth;
+            ctx.moveTo(x, padding);
+            ctx.lineTo(x, padding + chartHeight);
+        }
+        // Ensure the last data point's grid line is drawn
+        if (times.length > 0) {
+            const lastX = padding + ((times[times.length - 1] - minTime) / timeRange) * chartWidth;
+            ctx.moveTo(lastX, padding);
+            ctx.lineTo(lastX, padding + chartHeight);
+        }
+        ctx.stroke();
+
+        // --- Draw axes ---
+        ctx.strokeStyle = 'rgba(200, 200, 200, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Y-axis
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, padding + chartHeight);
+        // X-axis
+        ctx.lineTo(padding + chartWidth, padding + chartHeight);
+        ctx.stroke();
+
+        // --- Define colors for lines ---
+        const colors = [
+            '#4dabf7', // Blue
+            '#ff6b6b', // Red
+            '#51cf66', // Green
+            '#fcc419', // Yellow
+            '#cc5de8'  // Purple
+        ];
+
+        // --- Plot data lines ---
+        datasets.forEach((dataset, dsIdx) => {
+            if (dataset.values.length < 2) return; // Need at least 2 points
+
+            const color = colors[dsIdx % colors.length];
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            dataset.values.forEach((val, i) => {
+                const x = padding + ((times[i] - minTime) / timeRange) * chartWidth;
+                // Invert Y because canvas Y=0 is at the top
+                const y = padding + chartHeight - ((val - minValue) / valueRange) * chartHeight;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+
+            // Optional: Draw small circles at data points
+            // ctx.fillStyle = color;
+            // dataset.values.forEach((val, i) => {
+            //     const x = padding + ((times[i] - minTime) / timeRange) * chartWidth;
+            //     const y = padding + chartHeight - ((val - minValue) / valueRange) * chartHeight;
+            //     ctx.beginPath();
+            //     ctx.arc(x, y, 3, 0, Math.PI * 2);
+            //     ctx.fill();
+            // });
+        });
+
+        // --- Draw axis labels ---
+        ctx.fillStyle = 'white';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+
+        // Y-axis labels
+        for (let i = 0; i <= 5; i++) {
+            const val = minValue + (i / 5) * valueRange;
+            const y = padding + chartHeight - (i / 5) * chartHeight;
+            // Offset label slightly to the left of the Y-axis
+            ctx.fillText(val.toFixed(1), padding - 10, y - 6);
+        }
+
+        // X-axis labels (Time)
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        // Show a few time labels, including the last one
+        const labelStep = Math.max(1, Math.floor(times.length / 5));
+        for (let i = 0; i < times.length; i += labelStep) {
+            const time = times[i];
+            const x = padding + ((time - minTime) / timeRange) * chartWidth;
+            // Offset label slightly below the X-axis
+            ctx.fillText(time.toFixed(1) + 's', x, padding + chartHeight + 5);
+        }
+        // Ensure the last data point's time is labeled
+        if (times.length > 0) {
+            const lastTime = times[times.length - 1];
+            const lastX = padding + ((lastTime - minTime) / timeRange) * chartWidth;
+            ctx.fillText(lastTime.toFixed(1) + 's', lastX, padding + chartHeight + 5);
+        }
+
+        // --- Draw Legend (if multiple lines) ---
+        if (datasets.length > 1) {
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            const legendStartX = padding + 10;
+            const legendStartY = padding + 10;
+            const lineHeight = 15;
+
+            datasets.forEach((ds, idx) => {
+                const y = legendStartY + idx * lineHeight;
+                const color = colors[idx % colors.length];
+
+                // Draw color box
+                ctx.fillStyle = color;
+                ctx.fillRect(legendStartX, y, 10, 10);
+
+                // Draw label
+                ctx.fillStyle = 'white';
+                ctx.fillText(ds.key, legendStartX + 15, y);
+            });
+        }
+    }
+
     // Add view toggle functionality
     document.querySelectorAll('.view-toggle button').forEach(button => {
       button.addEventListener('click', function() {
-        const metric = this.getAttribute('data-metric');
-        const isGraph = this.classList.contains('graph-btn');
+        const target = this.getAttribute('data-target');
+        const isChart = this.classList.contains('chart-btn');
         
         // Update button states
-        document.querySelectorAll(`.view-toggle button[data-metric="${metric}"]`).forEach(btn => {
+        document.querySelectorAll(`.view-toggle button[data-target="${target}"]`).forEach(btn => {
           btn.classList.remove('active');
         });
         this.classList.add('active');
         
         // Toggle views
-        const chartView = document.getElementById(`${metric}Chart`);
-        const tableView = document.getElementById(`${metric}Table`);
+        const chartView = document.getElementById(`${target}Chart`);
+        const tableView = document.getElementById(`${target}Table`);
         
-        if (isGraph) {
+        if (isChart) {
           if (chartView) chartView.classList.remove('hidden');
           if (tableView) tableView.classList.remove('show');
         } else {
