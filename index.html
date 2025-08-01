@@ -2449,7 +2449,7 @@
       });
     });
     
-    // --- Global Variables for Floating Graph ---
+    const floatingGraphWindow = document.getElementById('floatingGraphWindow');
     let currentFloatingGraphMetric = null;
     let floatingGraphUpdateIntervalId = null; // For 1-second updates
     const floatingGraphWindow = document.getElementById('floatingGraphWindow');
@@ -2509,52 +2509,43 @@
 
     // --- Implement Floating Graph Window Functions ---
 
-        function showFloatingGraphWindow(metricKey) {
-            if (!floatingGraphWindow || !metricKey) return;
-    
-            currentFloatingGraphMetric = metricKey;
-            floatingGraphTitle.textContent = friendlyNames[metricKey] || `Graph: ${metricKey}`;
-    
-            // Position window initially near the center-bottom if not already positioned
-            // This check ensures it only sets initial position if it hasn't been moved/dragged yet.
-            if (!floatingGraphWindow.style.left || floatingGraphWindow.style.left === '50%') {
-                // Calculate initial centered position
-                const centerX = (window.innerWidth - floatingGraphWindow.offsetWidth) / 2;
-                const bottomY = window.innerHeight - floatingGraphWindow.offsetHeight - 20; // 20px from bottom
-                floatingGraphWindow.style.left = `${Math.max(centerX, 20)}px`; // Ensure it's not off-screen left
-                floatingGraphWindow.style.top = `${Math.max(bottomY, 20)}px`; // Ensure it's not off-screen top
-                // Clear the default bottom/transform used for initial CSS positioning
-                floatingGraphWindow.style.bottom = '';
-                floatingGraphWindow.style.transform = '';
-            }
-    
-            // Show the window
-            floatingGraphWindow.classList.add('show');
-    
-            // Draw the initial chart
-            drawFloatingChart(metricKey);
-    
-            // - Start continuous update interval -
-            if (floatingGraphUpdateIntervalId) {
-                clearInterval(floatingGraphUpdateIntervalId);
-            }
-            // Update the chart content
-            floatingGraphUpdateIntervalId = setInterval(() => {
-                if (floatingGraphWindow.classList.contains('show') && currentFloatingGraphMetric) {
-                    drawFloatingChart(currentFloatingGraphMetric);
+            function showFloatingGraphWindow(metricKey) {
+                if (!floatingGraphWindow || !metricKey) return;
+        
+                currentFloatingGraphMetric = metricKey;
+                floatingGraphTitle.textContent = friendlyNames[metricKey] || `Graph: ${metricKey}`;
+        
+                // Position window initially near the center-bottom if not already positioned
+                if (!floatingGraphWindow.style.left || floatingGraphWindow.style.left === '50%') {
+                    const centerX = (window.innerWidth - floatingGraphWindow.offsetWidth) / 2;
+                    const bottomY = window.innerHeight - floatingGraphWindow.offsetHeight - 20;
+                    floatingGraphWindow.style.left = `${Math.max(centerX, 20)}px`;
+                    floatingGraphWindow.style.top = `${Math.max(bottomY, 20)}px`;
+                    floatingGraphWindow.style.bottom = '';
+                    floatingGraphWindow.style.transform = '';
                 }
-            }, 1000); // Update every 1000ms (1 second)
-    
-            // - Attach drag listeners when window is shown -
-            attachDragListeners();
-        }
+        
+                floatingGraphWindow.classList.add('show');
+                drawFloatingChart(metricKey);
+        
+                if (floatingGraphUpdateIntervalId) {
+                    clearInterval(floatingGraphUpdateIntervalId);
+                }
+                floatingGraphUpdateIntervalId = setInterval(() => {
+                    if (floatingGraphWindow.classList.contains('show') && currentFloatingGraphMetric) {
+                        drawFloatingChart(currentFloatingGraphMetric);
+                    }
+                }, 1000);
+        
+                attachDragListeners();
+            }
         // Show the window
         floatingGraphWindow.classList.add('show');
         // Draw the initial chart
         drawFloatingChart(metricKey);
 
         // Update window title (optional: use a mapping for friendlier names)
-       const friendlyNames = {
+        const friendlyNames = {
             'totalParticles': 'Total Particles',
             'activeDecayed': 'Active / Decayed Particles',
             'beamParticles': 'Particles from Beams',
@@ -2564,6 +2555,13 @@
             'avgEnergy': 'Average Energy',
             'maxEnergy': 'Maximum Energy',
             'minEnergy': 'Minimum Energy',
+            'totalDistance': 'Total Distance Traveled',
+            'avgDistance': 'Average Distance Traveled',
+            'avgLifetime': 'Average Lifetime',
+            'collisions': 'Collisions',
+            'decays': 'Decays',
+            'beamEnergy': 'Average Beam Energy',
+            'decayEnergy': 'Average Decay Energy'
             // Add other metrics as needed
         };
         floatingGraphTitle.textContent = friendlyNames[metricKey] || `Graph: ${metricKey}`;
@@ -2585,28 +2583,24 @@
         }, 1000); // Update every 1000ms (1 second)
     }
 
-        function closeFloatingGraphWindow() {
-            floatingGraphWindow.classList.remove('show');
-            currentFloatingGraphMetric = null; // Reset metric state
-    
-            // Clear the canvas container
-            floatingGraphCanvasContainer.innerHTML = '';
-    
-            // - Stop the continuous update interval -
-            if (floatingGraphUpdateIntervalId) {
-                clearInterval(floatingGraphUpdateIntervalId);
-                floatingGraphUpdateIntervalId = null;
+            function closeFloatingGraphWindow() {
+                floatingGraphWindow.classList.remove('show');
+                currentFloatingGraphMetric = null;
+        
+                floatingGraphCanvasContainer.innerHTML = '';
+        
+                if (floatingGraphUpdateIntervalId) {
+                    clearInterval(floatingGraphUpdateIntervalId);
+                    floatingGraphUpdateIntervalId = null;
+                }
+        
+                detachDragListeners();
+        
+                floatingGraphWindow.style.left = '';
+                floatingGraphWindow.style.top = '';
+                floatingGraphWindow.style.bottom = '20px';
+                floatingGraphWindow.style.transform = 'translateX(-50%)';
             }
-    
-            // - Detach drag listeners when window is closed -
-            detachDragListeners();
-    
-            // - Reset window position to initial CSS-based state -
-            floatingGraphWindow.style.left = '';
-            floatingGraphWindow.style.top = '';
-            floatingGraphWindow.style.bottom = '20px'; // Restore original bottom positioning from CSS
-            floatingGraphWindow.style.transform = 'translateX(-50%)'; // Restore centering from CSS
-        }
 
         function detachDragListeners() {
             // Assuming you attached listeners like:
@@ -2638,44 +2632,34 @@
         }
     });
 
-    // --- Draggable Window Implementation ---
-        // --- Drag Functionality (Integrated within DOMContentLoaded or main script scope) ---
-        // State variables for dragging (ensure these are in the same scope as other floating window vars)
+       // State variables for dragging
         let isDragging = false;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
         let originalX = 0;
         let originalY = 0;
     
-        // --- Drag Functionality ---
         function startDrag(e) {
-            // Only start dragging if clicked on the header/title, not buttons or canvas
             if (e.target === floatingGraphHeader || e.target === floatingGraphTitle) {
                 isDragging = true;
                 const rect = floatingGraphWindow.getBoundingClientRect();
-                // Calculate offset relative to the window's current position
                 dragOffsetX = e.clientX - rect.left;
                 dragOffsetY = e.clientY - rect.top;
-                // Store original position styles (optional)
                 originalX = rect.left;
                 originalY = rect.top;
-                // Remove bottom/transform positioning to allow top/left manipulation
                 floatingGraphWindow.style.bottom = '';
                 floatingGraphWindow.style.transform = '';
-                // Set initial position using top/left (based on current position)
                 floatingGraphWindow.style.left = `${originalX}px`;
                 floatingGraphWindow.style.top = `${originalY}px`;
                 document.body.style.cursor = 'move';
-                e.preventDefault(); // Prevent text selection
+                e.preventDefault();
             }
         }
     
         function drag(e) {
             if (isDragging) {
-                // Calculate new position based on mouse movement and initial offset
                 const newX = e.clientX - dragOffsetX;
                 const newY = e.clientY - dragOffsetY;
-                // Apply new position using top/left
                 floatingGraphWindow.style.left = `${newX}px`;
                 floatingGraphWindow.style.top = `${newY}px`;
             }
@@ -2684,25 +2668,26 @@
         function stopDrag() {
             isDragging = false;
             document.body.style.cursor = '';
-            // Optional: Add boundary checks or snapping here if needed
         }
     
-        // Function to attach drag listeners (uses named functions)
         function attachDragListeners() {
-            // Ensure listeners are only added once or remove existing ones first to prevent duplicates
-            detachDragListeners(); // Clean up potential previous listeners
+            detachDragListeners();
             floatingGraphHeader.addEventListener('mousedown', startDrag);
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', stopDrag);
         }
     
-        // Function to detach drag listeners (uses named functions)
         function detachDragListeners() {
             floatingGraphHeader.removeEventListener('mousedown', startDrag);
             document.removeEventListener('mousemove', drag);
             document.removeEventListener('mouseup', stopDrag);
-            isDragging = false; // Ensure dragging state is reset
-            document.body.style.cursor = ''; // Reset cursor
+            isDragging = false;
+            document.body.style.cursor = '';
+        }
+    
+        if (floatingGraphWindow) {
+            closeFloatingGraphWindow();
+            floatingGraphWindow.classList.remove('show');
         }
     
         // --- Initial State ---
