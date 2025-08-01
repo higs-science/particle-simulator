@@ -2511,7 +2511,19 @@
 
     function showFloatingGraphWindow(metricKey) {
         // Set the current metric
-        currentFloatingGraphMetric = metricKey;
+        floatingGraphTitle.textContent = friendlyNames[metricKey]|| `Graph: ${metricKey}`;
+        // Position window initially near the center-bottom if not already positioned
+        if (!floatingGraphWindow.style.left|| !floatingGraphWindow.style.top) {
+            floatingGraphWindow.style.left = '50%';
+            floatingGraphWindow.style.top = 'auto';
+            // Use bottom and transform for initial centering
+            floatingGraphWindow.style.bottom = '20px';
+            floatingGraphWindow.style.transform = 'translateX(-50%)';
+        }
+        // Show the window
+        floatingGraphWindow.classList.add('show');
+        // Draw the initial chart
+        drawFloatingChart(metricKey);
 
         // Update window title (optional: use a mapping for friendlier names)
         const friendlyNames = {
@@ -2553,17 +2565,32 @@
     }
 
     function closeFloatingGraphWindow() {
-        floatingGraphWindow.classList.remove('show');
-        currentFloatingGraphMetric = null;
-        // Clear the canvas container
-        floatingGraphCanvasContainer.innerHTML = '';
-        
-        // --- Stop the update interval ---
+        // - Stop the continuous update interval -
         if (floatingGraphUpdateIntervalId) {
             clearInterval(floatingGraphUpdateIntervalId);
             floatingGraphUpdateIntervalId = null;
         }
+        // - Detach drag listeners when window is closed -
+        detachDragListeners(); // Make sure detachDragListeners is defined somewhere
+        // - Reset window position -
+        floatingGraphWindow.style.left = '';
+        floatingGraphWindow.style.top = '';
+        floatingGraphWindow.style.bottom = '20px'; // Restore original bottom positioning
+        floatingGraphWindow.style.transform = 'translateX(-50%)'; // Restore centering
+
+        function detachDragListeners() {
+            // Assuming you attached listeners like:
+            // floatingGraphHeader.addEventListener('mousedown', startDrag);
+            // document.addEventListener('mousemove', drag);
+            // document.addEventListener('mouseup', stopDrag);
         
+            // You should remove them like this:
+            floatingGraphHeader.removeEventListener('mousedown', startDrag); // Replace 'startDrag' with your actual mousedown handler name
+            document.removeEventListener('mousemove', drag); // Replace 'drag' with your actual mousemove handler name
+            document.removeEventListener('mouseup', stopDrag); // Replace 'stopDrag' with your actual mouseup handler name
+        }
+
+      
         // --- Reset window position ---
         floatingGraphWindow.style.left = '';
         floatingGraphWindow.style.top = '';
