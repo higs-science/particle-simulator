@@ -2524,42 +2524,39 @@
     };
 
     function showFloatingGraphWindow(metricKey) {
-            function showFloatingGraphWindow(metricKey) {
-                if (!floatingGraphWindow || !metricKey) return;
-        
-                currentFloatingGraphMetric = metricKey;
-                floatingGraphTitle.textContent = friendlyNames[metricKey] || `Graph: ${metricKey}`;
-        
-                // Position window initially near the center-bottom if not already positioned
-                if (!floatingGraphWindow.style.left || floatingGraphWindow.style.left === '50%') {
-                    const centerX = (window.innerWidth - floatingGraphWindow.offsetWidth) / 2;
-                    const bottomY = window.innerHeight - floatingGraphWindow.offsetHeight - 20;
-                    floatingGraphWindow.style.left = `${Math.max(centerX, 20)}px`;
-                    floatingGraphWindow.style.top = `${Math.max(bottomY, 20)}px`;
-                    floatingGraphWindow.style.bottom = '';
-                    floatingGraphWindow.style.transform = '';
-                }
-        
-                floatingGraphWindow.classList.add('show');
-                drawFloatingChart(metricKey);
-        
-                if (floatingGraphUpdateIntervalId) {
-                    clearInterval(floatingGraphUpdateIntervalId);
-                }
-                floatingGraphUpdateIntervalId = setInterval(() => {
-                    if (floatingGraphWindow.classList.contains('show') && currentFloatingGraphMetric) {
-                        drawFloatingChart(currentFloatingGraphMetric);
-                    }
-                }, 1000);
-        
-                attachDragListeners();
-            }
+        if (!floatingGraphWindow || !metricKey) return;
+    
+        currentFloatingGraphMetric = metricKey;
+        floatingGraphTitle.textContent = friendlyNames[metricKey] || `Graph: ${metricKey}`;
+    
+        // Position window initially near the center-bottom if not already positioned
+        if (!floatingGraphWindow.style.left || floatingGraphWindow.style.left === '50%') {
+            const centerX = (window.innerWidth - floatingGraphWindow.offsetWidth) / 2;
+            const bottomY = window.innerHeight - floatingGraphWindow.offsetHeight - 20;
+            floatingGraphWindow.style.left = `${Math.max(centerX, 20)}px`;
+            floatingGraphWindow.style.top = `${Math.max(bottomY, 20)}px`;
+            floatingGraphWindow.style.bottom = '';
+            floatingGraphWindow.style.transform = '';
+        }
+    
         // Show the window
         floatingGraphWindow.classList.add('show');
+        
         // Draw the initial chart
         drawFloatingChart(metricKey);
-
-        };
+    
+        // Set up update interval
+        if (floatingGraphUpdateIntervalId) {
+            clearInterval(floatingGraphUpdateIntervalId);
+        }
+        floatingGraphUpdateIntervalId = setInterval(() => {
+            if (floatingGraphWindow.classList.contains('show') && currentFloatingGraphMetric) {
+                drawFloatingChart(currentFloatingGraphMetric);
+            }
+        }, 1000);
+    
+        attachDragListeners();
+    }
         floatingGraphTitle.textContent = friendlyNames[metricKey] || `Graph: ${metricKey}`;
 
         // Show the window
@@ -2629,57 +2626,62 @@
     });
 
        // State variables for dragging
-        let isDragging = false;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
-        let originalX = 0;
-        let originalY = 0;
-    
-        function startDrag(e) {
-            if (e.target === floatingGraphHeader || e.target === floatingGraphTitle) {
-                isDragging = true;
-                const rect = floatingGraphWindow.getBoundingClientRect();
-                dragOffsetX = e.clientX - rect.left;
-                dragOffsetY = e.clientY - rect.top;
-                originalX = rect.left;
-                originalY = rect.top;
-                floatingGraphWindow.style.bottom = '';
-                floatingGraphWindow.style.transform = '';
-                floatingGraphWindow.style.left = `${originalX}px`;
-                floatingGraphWindow.style.top = `${originalY}px`;
-                document.body.style.cursor = 'move';
-                e.preventDefault();
-            }
-        }
-    
-        function drag(e) {
-            if (isDragging) {
-                const newX = e.clientX - dragOffsetX;
-                const newY = e.clientY - dragOffsetY;
-                floatingGraphWindow.style.left = `${newX}px`;
-                floatingGraphWindow.style.top = `${newY}px`;
-            }
-        }
-    
-        function stopDrag() {
-            isDragging = false;
-            document.body.style.cursor = '';
-        }
-    
-        function attachDragListeners() {
-            detachDragListeners();
-            floatingGraphHeader.addEventListener('mousedown', startDrag);
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('mouseup', stopDrag);
-        }
-    
-        function detachDragListeners() {
-            floatingGraphHeader.removeEventListener('mousedown', startDrag);
-            document.removeEventListener('mousemove', drag);
-            document.removeEventListener('mouseup', stopDrag);
-            isDragging = false;
-            document.body.style.cursor = '';
-        }
+      let isDragging = false;
+      let dragOffsetX = 0;
+      let dragOffsetY = 0;
+      let originalX = 0;
+      let originalY = 0;
+      
+      function startDrag(e) {
+          if (e.target === floatingGraphHeader || e.target === floatingGraphTitle) {
+              isDragging = true;
+              const rect = floatingGraphWindow.getBoundingClientRect();
+              dragOffsetX = e.clientX - rect.left;
+              dragOffsetY = e.clientY - rect.top;
+              originalX = rect.left;
+              originalY = rect.top;
+              floatingGraphWindow.style.bottom = '';
+              floatingGraphWindow.style.transform = '';
+              floatingGraphWindow.style.left = `${originalX}px`;
+              floatingGraphWindow.style.top = `${originalY}px`;
+              document.body.style.cursor = 'move';
+              e.preventDefault();
+          }
+      }
+      
+      function drag(e) {
+          if (isDragging) {
+              const newX = e.clientX - dragOffsetX;
+              const newY = e.clientY - dragOffsetY;
+              floatingGraphWindow.style.left = `${newX}px`;
+              floatingGraphWindow.style.top = `${newY}px`;
+          }
+      }
+      
+      function stopDrag() {
+          isDragging = false;
+          document.body.style.cursor = '';
+      }
+      
+      function attachDragListeners() {
+          // Always detach first to prevent duplicate listeners
+          detachDragListeners();
+          
+          floatingGraphHeader.addEventListener('mousedown', startDrag);
+          document.addEventListener('mousemove', drag);
+          document.addEventListener('mouseup', stopDrag);
+      }
+      
+      function detachDragListeners() {
+          // Remove all drag-related event listeners
+          floatingGraphHeader.removeEventListener('mousedown', startDrag);
+          document.removeEventListener('mousemove', drag);
+          document.removeEventListener('mouseup', stopDrag);
+          
+          // Reset drag state
+          isDragging = false;
+          document.body.style.cursor = '';
+      }
     
         if (floatingGraphWindow) {
             closeFloatingGraphWindow();
