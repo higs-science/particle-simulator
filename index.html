@@ -2452,7 +2452,6 @@
     const floatingGraphWindow = document.getElementById('floatingGraphWindow');
     let currentFloatingGraphMetric = null;
     let floatingGraphUpdateIntervalId = null; // For 1-second updates
-    const floatingGraphWindow = document.getElementById('floatingGraphWindow');
     const floatingGraphHeader = document.getElementById('floatingGraphHeader'); // For dragging
     const floatingGraphTitle = document.getElementById('floatingGraphTitle');
     const floatingGraphCanvasContainer = document.getElementById('floatingGraphCanvasContainer');
@@ -2467,21 +2466,15 @@
 
     // --- Modify View Toggle Event Listener ---
     document.addEventListener('click', function(event) {
-        // --- Handle clicks on graph buttons ---
+        // Handle clicks on graph buttons
         if (event.target.matches('.view-toggle .graph-btn')) {
             const metricKey = event.target.getAttribute('data-metric');
-            console.log("Floating Graph button clicked for metric:", metricKey);
-
-            // --- Toggle Logic for Floating Graph ---
+            
+            // Toggle Logic for Floating Graph
             if (currentFloatingGraphMetric === metricKey && floatingGraphWindow.classList.contains('show')) {
-                // Same graph button pressed and window is open -> Close it
-                console.log(`Closing floating graph for ${metricKey}`);
                 closeFloatingGraphWindow();
             } else {
-                // Different graph button pressed or window is closed -> Open/show it
-                console.log(`Opening/switching floating graph for ${metricKey}`);
                 showFloatingGraphWindow(metricKey);
-                // Ensure stats panel closes if it was open
                 if (statsDisplay.classList.contains('show')) {
                     statsCheckbox.checked = false;
                     statsDisplay.classList.remove('show');
@@ -2509,6 +2502,28 @@
 
     // --- Implement Floating Graph Window Functions ---
 
+
+
+    const friendlyNames = {
+        'totalParticles': 'Total Particles',
+        'activeDecayed': 'Active / Decayed Particles',
+        'beamParticles': 'Particles from Beams',
+        'decayParticles': 'Particles from Decays',
+        'maxDecayChain': 'Maximum Decay Chain Length',
+        'avgSpeed': 'Average Speed',
+        'avgEnergy': 'Average Energy',
+        'maxEnergy': 'Maximum Energy',
+        'minEnergy': 'Minimum Energy',
+        'totalDistance': 'Total Distance Traveled',
+        'avgDistance': 'Average Distance Traveled',
+        'avgLifetime': 'Average Lifetime',
+        'collisions': 'Collisions',
+        'decays': 'Decays',
+        'beamEnergy': 'Average Beam Energy',
+        'decayEnergy': 'Average Decay Energy'
+    };
+
+    function showFloatingGraphWindow(metricKey) {
             function showFloatingGraphWindow(metricKey) {
                 if (!floatingGraphWindow || !metricKey) return;
         
@@ -2544,25 +2559,6 @@
         // Draw the initial chart
         drawFloatingChart(metricKey);
 
-        // Update window title (optional: use a mapping for friendlier names)
-        const friendlyNames = {
-            'totalParticles': 'Total Particles',
-            'activeDecayed': 'Active / Decayed Particles',
-            'beamParticles': 'Particles from Beams',
-            'decayParticles': 'Particles from Decays',
-            'maxDecayChain': 'Maximum Decay Chain Length',
-            'avgSpeed': 'Average Speed',
-            'avgEnergy': 'Average Energy',
-            'maxEnergy': 'Maximum Energy',
-            'minEnergy': 'Minimum Energy',
-            'totalDistance': 'Total Distance Traveled',
-            'avgDistance': 'Average Distance Traveled',
-            'avgLifetime': 'Average Lifetime',
-            'collisions': 'Collisions',
-            'decays': 'Decays',
-            'beamEnergy': 'Average Beam Energy',
-            'decayEnergy': 'Average Decay Energy'
-            // Add other metrics as needed
         };
         floatingGraphTitle.textContent = friendlyNames[metricKey] || `Graph: ${metricKey}`;
 
