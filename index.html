@@ -95,6 +95,7 @@
       background: #10b981;
       cursor: pointer;
       box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+      margin-top: -6px;
     }
     input[type="range"]::-webkit-slider-runnable-track {
       background: linear-gradient(to right, #10b981 0%, #10b981 var(--value, 0%), #ddd var(--value, 0%), #ddd 100%);
@@ -2485,13 +2486,13 @@
             const rect = floatingGraphWindow.getBoundingClientRect();
             dragOffsetX = e.clientX - rect.left;
             dragOffsetY = e.clientY - rect.top;
-            
-            // Convert position to fixed px so it doesn't jump on transform removal
-            floatingGraphWindow.style.bottom = ''; // Remove bottom positioning
-            floatingGraphWindow.style.transform = ''; // Remove transform
+    
+            // FIX: Remove the 'bottom' and 'transform' properties during drag
+            floatingGraphWindow.style.bottom = ''; 
+            floatingGraphWindow.style.transform = '';
+    
             floatingGraphWindow.style.left = `${rect.left}px`;
             floatingGraphWindow.style.top = `${rect.top}px`;
-            
             document.body.style.cursor = 'move';
             e.preventDefault();
         }
@@ -2837,6 +2838,132 @@
     drawParticles();
 
   });
+
+
+
+    function openCsvModal() {
+        csvFieldsContainer.innerHTML = ''; // Clear previous fields to prevent duplicates
+        
+        // Loop through the friendlyNames object to create a checkbox for each metric
+        Object.keys(friendlyNames).forEach(key => {
+            // Exclude metrics that are not simple time-series data
+            if (key === 'topDecays' || key === 'composition') return; 
+
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = key;
+            checkbox.checked = true; // Default to all selected
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(` ${friendlyNames[key]}`)); // Use the friendly name for the label
+            csvFieldsContainer.appendChild(label);
+        });
+        csvExportModal.classList.add('show');
+    }
+
+    // This function gathers the selected data, formats it, and triggers the CSV download.
+    function exportStatsToCsv() {
+            // Step 1: Check if there is any data to export.
+            if (!statsData.totalParticles || statsData.totalParticles.length === 0) {
+                alert("No statistics have been recorded for the current run. Press Play (▶️) to begin collecting data.");
+                return;
+            }
+    
+            // Step 2: Get all the checkboxes that the user has selected.
+            const selectedKeys = Array.from(csvFieldsContainer.querySelectorAll('input:checked')).map(cb => cb.value);
+            if (selectedKeys.length === 0) {
+                alert("Please select at least one metric to export.");
+                return;
+            }
+    
+            // Step 3: Define the headers and data formatting for each possible metric.
+            const headerNames = {
+                time: ["Time(s)"],
+                totalParticles: ["TotalParticles"],
+                activeDecayed: ["ActiveParticles", "DecayedParticles"],
+                beamParticles: ["BeamParticles"],
+                decayParticles: ["DecayParticles"],
+                maxDecayChain: ["MaxDecayChain"],
+                avgSpeed: ["AvgSpeed"],
+                avgEnergy: ["AvgEnergy"],
+                maxEnergy: ["MaxEnergy", "MaxEnergyParticle"],
+                minEnergy: ["MinEnergy", "MinEnergyParticle"],
+                totalDistance: ["TotalDistance"],
+                avgDistance: ["AvgDistance"],
+                avgLifetime: ["AvgLifetime(s)"],
+                collisions: ["TotalCollisions", "CollisionRate(/s)"],
+                decays: ["TotalDecays", "DecayRate(/s)"],
+                beamEnergy: ["AvgBeamEnergy"],
+                decayEnergy: ["AvgDecayEnergy"]
+            };
+    
+            const keyMap = {
+                time: d => d.time.toFixed(3),
+                totalParticles: d => d.value,
+                activeDecayed: d => [d.active, d.decayed],
+                beamParticles: d => d.value,
+                decayParticles: d => d.value,
+                maxDecayChain: d => d.value,
+                avgSpeed: d => d.value.toFixed(2),
+                avgEnergy: d => d.value.toFixed(2),
+                maxEnergy: d => [d.value.toFixed(2), d.particle],
+                minEnergy: d => [d.value.toFixed(2), d.particle],
+                totalDistance: d => d.value.toFixed(2),
+                avgDistance: d => d.value.toFixed(2),
+                avgLifetime: d => d.value.toFixed(2),
+                collisions: d => [d.count, d.rate.toFixed(1)],
+                decays: d => [d.count, d.rate.toFixed(2)],
+                beamEnergy: d => d.value.toFixed(2),
+                decayEnergy: d => d.value.toFixed(2)
+            };
+            
+            // Step 4: Build the header row for the CSV based on user selections.
+            let headers = ["Time(s)"];
+            selectedKeys.forEach(key => {
+                headers.push(...headerNames[key]);
+            });
+            
+            let csvContent = headers.join(",") + "\r\n";
+            
+            // Step 5: Iterate through each timestamp and build each row of data.
+            const numRows = statsData.totalParticles.length;
+            for (let i = 0; i < numRows; i++) {
+                let row = [statsData.totalParticles[i].time.toFixed(3)]; // Start each row with the time
+                
+                for (const key of selectedKeys) {
+                    if (statsData[key] && statsData[key][i]) {
+                        // Get the formatted value(s) for this metric at this time step
+                        const values = [].concat(keyMap[key](statsData[key][i])); // Ensure it's an array
+                        row.push(...values);
+                    } else {
+                        // If data is missing for a key (shouldn't happen), add empty placeholders
+                        row.push(...Array(headerNames[key].length).fill(''));
+                    }
+                }
+                // Add the completed row to the CSV string, ensuring values are quoted.
+                csvContent += row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",") + "\r\n";
+            }
+            
+            // Step 6: Create a Blob and trigger the download.
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "collider_stats.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+    
+            // Close the modal after export
+            csvExportModal.classList.remove('show');
+        }
+        
+        // Attach the event listeners for the new modal
+        exportCsvBtn.addEventListener('click', openCsvModal);
+        closeCsvModalBtn.addEventListener('click', () => csvExportModal.classList.remove('show'));
+        confirmExportBtn.addEventListener('click', exportStatsToCsv);
+    
   </script>
 </body>
 </html>
