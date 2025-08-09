@@ -2537,7 +2537,7 @@
             const centerX = (window.innerWidth - floatingGraphWindow.offsetWidth) / 2;
             const bottomY = window.innerHeight - floatingGraphWindow.offsetHeight - 20;
             floatingGraphWindow.style.left = `${Math.max(centerX, 20)}px`;
-            floatingGraphWindow.style.top = `${Math.max(bottomY, 20)}px`;
+            floatingGraphWindow.style.top = `${Math.max(bottomY, -20)}px`;
             floatingGraphWindow.style.bottom = '';
             floatingGraphWindow.style.transform = '';
         }
